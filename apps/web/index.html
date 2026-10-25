@@ -3,125 +3,550 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#090c12" />
-  <meta name="description" content="GhostPay: payment recovery for autonomous agents and paid APIs on Arc." />
-  <title>GhostPay — Recover every paid request</title>
-  <link rel="stylesheet" href="/style.css" />
-  <script type="module" src="/app.js"></script>
+  <meta name="theme-color" content="#080F14" />
+  <meta name="description" content="GhostPay — idempotent USDC payment recovery for AI agents and paid APIs on Arc. Payments go through. Responses don't always." />
+  <title>GhostPay — Payment Recovery for AI Agents on Arc</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="/landing.css" />
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar">
-      <a class="brand" href="/" aria-label="GhostPay home">
-        <span class="brand-icon">✳</span><span>ghost<span class="brand-accent">pay</span></span>
+
+<!-- ══════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════ -->
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <a class="logo" href="/" aria-label="GhostPay home">
+        <div class="logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 2L13 5V11L8 14L3 11V5L8 2Z" stroke="#0A2218" stroke-width="1.5" fill="none"/>
+            <circle cx="8" cy="8" r="2" fill="#0A2218"/>
+          </svg>
+        </div>
+        ghost<span class="logo-accent">pay</span>
       </a>
-      <div class="side-label">WORKSPACE</div>
-      <nav class="side-nav" aria-label="Main navigation">
-        <a href="#lab" class="nav-item active"><span class="nav-symbol">◈</span> Failure Lab <span class="nav-pill">LIVE</span></a>
-        <a href="#flow" class="nav-item"><span class="nav-symbol">⤴</span> Recovery flow</a>
-        <a href="#history" class="nav-item"><span class="nav-symbol">▤</span> Event timeline</a>
-        <a href="#about" class="nav-item"><span class="nav-symbol">⌘</span> Architecture</a>
+
+      <nav aria-label="Main navigation">
+        <ul class="nav-links">
+          <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="/lab">Failure Lab</a></li>
+          <li><a href="#developers">Developers</a></li>
+          <li><a href="https://github.com/Nauvvi1/ghostpay-recovery" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+        </ul>
       </nav>
-      <div class="sidebar-lower">
-        <div class="environment-title">NETWORK</div>
-        <div class="network-pill"><span class="online-dot"></span><span id="networkName">LOCAL SIMULATION</span></div>
-        <div class="sidebar-divider"></div>
-        <div class="sidebar-note">Payment certainty when networks are anything but certain.</div>
-        <div class="tiny-version">GhostPay / v1.0.0 · Hackathon MVP</div>
+
+      <div class="header-actions">
+        <a class="btn-ghost" href="https://github.com/Nauvvi1/ghostpay-recovery" target="_blank" rel="noopener noreferrer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          GitHub
+        </a>
+        <a class="btn-mint" href="/lab">Open Failure Lab</a>
       </div>
-    </aside>
+    </div>
+  </div>
+</header>
 
-    <main class="content">
-      <header class="topbar">
-        <div class="breadcrumb">Products <span>/</span> GhostPay <span>/</span> <strong>Failure Lab</strong></div>
-        <div class="topright"><span class="pulsing-dot"></span><span id="serverStatus">Connecting to engine</span><span class="top-divider"></span><span class="version">v1.0</span></div>
-      </header>
+<!-- ══════════════════════════════════════════
+     HERO
+══════════════════════════════════════════ -->
+<section class="hero-section">
+  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="hero-grid-lines" aria-hidden="true"></div>
+  <div class="container">
+    <div class="hero-content">
+      <div class="eyebrow">Payment Recovery Protocol · Built for Arc</div>
 
-      <div class="main-body">
-        <section class="hero" id="lab">
-          <div class="hero-noise"></div>
-          <div class="hero-content">
-            <div class="eyebrow"><span class="eyebrow-line"></span> PAYMENT RECOVERY PROTOCOL <span class="eyebrow-stamp">BUILT FOR ARC</span></div>
-            <h1>Payments go through.<br/><span>Responses don't always.</span></h1>
-            <p class="hero-subtitle">What happens when the blockchain confirms payment, but your API times out? Break the connection. Retry five times. See why the money moves only once.</p>
-            <div class="hero-meta"><span><b class="meta-circle">✓</b> Idempotent settlement</span><span><b class="meta-circle">✓</b> Durable recovery</span><span><b class="meta-circle">✓</b> Real failure injection</span></div>
+      <h1 class="hero-title display">
+        Payments go through.<br><em>Responses don't always.</em>
+      </h1>
+
+      <p class="hero-subtitle">
+        GhostPay ensures that a retried API call is never charged twice and that
+        a previously paid result can be recovered — even after a TCP drop, crash, or timeout.
+      </p>
+
+      <div class="hero-cta">
+        <a class="btn-primary" href="/lab">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Open Failure Lab
+        </a>
+        <a class="btn-secondary" href="https://github.com/Nauvvi1/ghostpay-recovery" target="_blank" rel="noopener noreferrer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          View Source
+        </a>
+      </div>
+
+      <!-- Recovery flow diagram -->
+      <div class="flow-diagram" role="img" aria-label="Payment recovery flow: Request created, USDC approved, payment settled, response delivered or TCP fault, retry recovers result">
+        <div class="flow-step active">
+          <div class="flow-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M16 8V6a4 4 0 00-8 0v2"/></svg>
           </div>
-          <div class="hero-decoration" aria-hidden="true"><div class="orb outer"></div><div class="orb inner"></div><span>GHOST<br/>PAY</span></div>
-        </section>
+          <span>Request<br>created</span>
+        </div>
+        <div class="flow-arrow" aria-hidden="true">→</div>
+        <div class="flow-step active">
+          <div class="flow-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          </div>
+          <span>USDC<br>approved</span>
+        </div>
+        <div class="flow-arrow" aria-hidden="true">→</div>
+        <div class="flow-step active">
+          <div class="flow-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <span>Payment<br>settled</span>
+          <span class="flow-badge">On-chain</span>
+        </div>
+        <div class="flow-arrow" aria-hidden="true">→</div>
+        <div class="flow-step fault">
+          <div class="flow-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
+          <span>TCP<br>dropped</span>
+          <span class="flow-badge fault-badge">Fault</span>
+        </div>
+        <div class="flow-arrow" aria-hidden="true">→</div>
+        <div class="flow-step active">
+          <div class="flow-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+          </div>
+          <span>Result<br>recovered</span>
+          <span class="flow-badge">One payment</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-        <section class="kpi-grid" aria-label="Operation metrics">
-          <div class="kpi-card"><div class="kpi-label">Payment executions <span class="kpi-symbol">↗</span></div><div class="kpi-value" id="kpiPayments">0</div><div class="kpi-bottom"><span class="kpi-positive">ONE-TIME</span> per operation</div></div>
-          <div class="kpi-card"><div class="kpi-label">Retry attempts <span class="kpi-symbol">⟳</span></div><div class="kpi-value" id="kpiRetries">0</div><div class="kpi-bottom">Safe replays observed</div></div>
-          <div class="kpi-card"><div class="kpi-label">Service executions <span class="kpi-symbol">◉</span></div><div class="kpi-value" id="kpiJobs">0</div><div class="kpi-bottom">Durable job records</div></div>
-          <div class="kpi-card highlight-card"><div class="kpi-label">Duplicate debits <span class="kpi-symbol">⬡</span></div><div class="kpi-value mint" id="kpiDuplicates">0</div><div class="kpi-bottom"><span class="kpi-positive">PROTECTED</span> by operation ID</div></div>
-        </section>
+<div class="divider"></div>
 
-        <div class="main-grid">
-          <section class="panel control-panel">
-            <div class="panel-head"><div><div class="panel-kicker">01 / INTERACTIVE TEST</div><h2>Failure simulator</h2><p>Inject a failure into an actual local HTTP workflow.</p></div><span class="lab-chip">● LAB</span></div>
-            <div class="mode-switch" role="group" aria-label="Payment mode">
-              <button id="demoTab" class="tab active" type="button">◈ &nbsp; Local simulation</button>
-              <button id="arcTab" class="tab" type="button">◎ &nbsp; Arc Mainnet</button>
-            </div>
-            <div id="demoPanel">
-              <div class="form-label">INJECT A FAILURE</div>
-              <div class="scenario-list" id="scenarioList">
-                <label class="scenario-option selected"><input type="radio" name="scenario" value="lost-response" checked /><span class="scenario-radio"></span><span class="scenario-text"><strong>Lost response</strong><small>Disconnect TCP after a successful payment + result</small></span><span class="scenario-tag red-tag">NETWORK</span></label>
-                <label class="scenario-option"><input type="radio" name="scenario" value="crash-after-payment" /><span class="scenario-radio"></span><span class="scenario-text"><strong>Crash after payment</strong><small>Paid, but service work hasn't started yet</small></span><span class="scenario-tag">SERVER</span></label>
-                <label class="scenario-option"><input type="radio" name="scenario" value="crash-after-job" /><span class="scenario-radio"></span><span class="scenario-text"><strong>Crash after work</strong><small>Work saved; final HTTP response is missing</small></span><span class="scenario-tag">SERVER</span></label>
-                <label class="scenario-option"><input type="radio" name="scenario" value="concurrent" /><span class="scenario-radio"></span><span class="scenario-text"><strong>Concurrent retries</strong><small>Five simultaneous requests with one operation ID</small></span><span class="scenario-tag">RACE</span></label>
-              </div>
-              <button id="runDemo" class="primary-button" type="button"><span>▶</span> Simulate failure &amp; recover <span class="button-arrow">↗</span></button>
-              <p class="cost-note"><span>ⓘ</span> This mode is simulated. No wallet, token or onchain transfer is used.</p>
-            </div>
-            <div id="arcPanel" hidden>
-              <div id="arcMissing" class="setup-info" hidden><strong>Mainnet is not configured</strong><p>Deploy <code>GhostPay.sol</code> and set <code>PAYMENT_MODE=arc</code>, <code>ARC_CONTRACT_ADDRESS</code>, and <code>MERCHANT_ADDRESS</code> in your environment.</p></div>
-              <div id="arcReady" hidden>
-                <div class="real-alert"><strong>Real USDC · Arc Mainnet</strong><p>A real 0.10 USDC token payment plus gas fees will be submitted from your wallet. Review transactions before approving.</p></div>
-                <div class="live-steps"><span>1. Connect wallet</span><span>2. Prepare operation</span><span>3. Pay once</span><span>4. Recover from chain</span></div>
-                <button id="connectWallet" type="button" class="secondary-button">Connect Arc wallet</button>
-                <div class="wallet-line" id="walletLine">No account connected</div>
-                <button id="createArc" class="primary-button" type="button" disabled>Prepare new 0.10 USDC operation</button>
-                <button id="payArc" class="secondary-button" type="button" disabled>Approve (if needed) &amp; pay 0.10 USDC</button>
-                <button id="recoverArc" class="secondary-button" type="button" disabled>Recover from Arc — no new payment</button>
-              </div>
-            </div>
-          </section>
+<!-- ══════════════════════════════════════════
+     WHY IT MATTERS
+══════════════════════════════════════════ -->
+<section class="section" id="why-it-matters">
+  <div class="container">
+    <div class="eyebrow">Why it matters</div>
+    <h2 class="section-title">The failure modes<br>nobody accounts for</h2>
+    <p class="section-desc">
+      Standard HTTP clients assume success or failure. Real distributed systems have a third state —
+      completed but lost — and paid APIs make it expensive.
+    </p>
 
-          <section class="panel result-panel" id="flow">
-            <div class="panel-head"><div><div class="panel-kicker">02 / LIVE RECOVERY</div><h2>Operation inspector</h2><p>Every retry refers to the same immutable operation.</p></div><span id="operationStatus" class="status-label idle">IDLE</span></div>
-            <div class="operation-ref"><div><div class="form-label">OPERATION ID</div><span class="mono" id="operationId">No active operation</span></div><button id="copyId" class="copy-button" disabled title="Copy operation ID" type="button">⧉</button></div>
-            <div class="flow-diagram">
-              <div class="flow-node" id="flowCreated"><div class="node-icon">01</div><strong>Request</strong><small>Created</small></div>
-              <div class="flow-edge"><span>→</span></div>
-              <div class="flow-node" id="flowPaid"><div class="node-icon">02</div><strong>Payment</strong><small>Settled</small></div>
-              <div class="flow-edge"><span>→</span></div>
-              <div class="flow-node" id="flowJob"><div class="node-icon">03</div><strong>Service</strong><small>Persisted</small></div>
-              <div class="flow-edge"><span>→</span></div>
-              <div class="flow-node" id="flowResult"><div class="node-icon">04</div><strong>Recovery</strong><small>Delivered</small></div>
-            </div>
-            <div class="ledger-comparison">
-              <div><span class="stat-key">USDC PAID</span><div class="stat-big"><span id="paidAmount">0.00</span><small> USDC</small></div></div>
-              <div class="ledger-divider"></div>
-              <div><span class="stat-key">RETRIES</span><div class="stat-big" id="retryCount">0</div></div>
-              <div class="ledger-divider"></div>
-              <div><span class="stat-key">EXTRA DEBITS</span><div class="stat-big mint" id="extraDebits">0</div></div>
-            </div>
-            <div class="output-box" id="outputBox"><span class="output-placeholder">▧ &nbsp; Start a simulation to see the paid API response recovered here.</span></div>
-            <div class="operation-foot" id="operationFoot">Ready to run fault injection.</div>
-            <a id="txLink" class="transaction-link" href="#" target="_blank" rel="noopener noreferrer" hidden>View confirmed payment on Arc Explorer ↗</a>
-          </section>
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+        <h3>Duplicate payments</h3>
+        <p>An impatient client retries a timed-out request. Without an idempotency key stored on-chain,
+           the payment runs twice. 0.10 USDC becomes 0.20 USDC for one API response.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/><path d="M12 5v14"/></svg>
+        </div>
+        <h3>Missing responses</h3>
+        <p>The blockchain confirms payment. The server crashes after writing the result but
+           before sending the HTTP response. The client has no result and no way to prove it paid.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+        </div>
+        <h3>Costly manual recovery</h3>
+        <p>Without durable operation IDs and a verifiable on-chain receipt, recovery means
+           reading blockchain logs, reconciling ledgers, and issuing refunds manually.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══════════════════════════════════════════
+     HOW IT WORKS
+══════════════════════════════════════════ -->
+<section class="section" id="how-it-works">
+  <div class="container">
+    <div class="eyebrow">How it works</div>
+    <h2 class="section-title">Four steps.<br>Exactly one payment.</h2>
+    <p class="section-desc">
+      GhostPay links an immutable operation ID to a USDC payment on Arc.
+      Every retry uses the same ID — the contract ensures it can only settle once.
+    </p>
+
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <span class="step-number">01</span>
+        <h3>Approve</h3>
+        <p>The payer calls <code>approve(ghostpay, 100000)</code> on the USDC ERC-20 contract —
+           an exact, one-time allowance for this operation.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <span class="step-number">02</span>
+        <h3>Pay once</h3>
+        <p><code>GhostPay.pay(operationId, merchant, amount, requestHash)</code> records the
+           receipt and transfers USDC atomically. A replay with the same ID returns
+           <code>false</code> — no second transfer.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+        </div>
+        <span class="step-number">03</span>
+        <h3>Retry safely</h3>
+        <p>The client retries with the same operation ID. The server checks SQLite for an
+           existing settlement — no second approval, no second transfer, no second execution.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </div>
+        <span class="step-number">04</span>
+        <h3>Recover response</h3>
+        <p>The durable job result stored before the fault is returned unchanged.
+           In Arc mode, <code>paymentOf(payer, operationId)</code> proves settlement
+           directly from on-chain state.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══════════════════════════════════════════
+     FAILURE LAB PREVIEW
+══════════════════════════════════════════ -->
+<section class="section" id="failure-lab">
+  <div class="container">
+    <div class="section-header-row">
+      <div>
+        <div class="eyebrow">Interactive demo</div>
+        <h2 class="section-title">The Failure Lab</h2>
+        <p class="section-desc">
+          Inject real faults into an actual local HTTP workflow.
+          Watch the recovery prove that payment count stays at one.
+        </p>
+      </div>
+    </div>
+
+    <div class="lab-preview">
+      <div class="lab-preview-header">
+        <div class="lab-preview-title">
+          GhostPay Failure Lab
+          <span class="live-badge"><span class="live-dot"></span>Live backend</span>
+        </div>
+        <a class="btn-lab" href="/lab">
+          Open interactive lab
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <!-- Metric strip -->
+      <div class="lab-preview-body">
+        <div class="lab-stat">
+          <div class="lab-stat-label">Payment executions</div>
+          <div class="lab-stat-value">1</div>
+          <div class="lab-stat-sub">One-time per operation ID</div>
+        </div>
+        <div class="lab-stat">
+          <div class="lab-stat-label">Retry attempts</div>
+          <div class="lab-stat-value">5</div>
+          <div class="lab-stat-sub">Safe replays per scenario</div>
+        </div>
+        <div class="lab-stat">
+          <div class="lab-stat-label">Service executions</div>
+          <div class="lab-stat-value">1</div>
+          <div class="lab-stat-sub">Durable job record</div>
+        </div>
+        <div class="lab-stat">
+          <div class="lab-stat-label">Duplicate debits</div>
+          <div class="lab-stat-value mint">0</div>
+          <div class="lab-stat-sub">Protected by operation ID</div>
+        </div>
+      </div>
+
+      <!-- Scenario list -->
+      <div class="lab-scenarios">
+        <div class="lab-scenario">
+          <div class="scenario-name">Lost response</div>
+          <div class="scenario-desc">TCP socket destroyed after payment + result committed</div>
+          <span class="scenario-tag tag-network">Network</span>
+        </div>
+        <div class="lab-scenario">
+          <div class="scenario-name">Crash after payment</div>
+          <div class="scenario-desc">503 after durable settlement, before service work</div>
+          <span class="scenario-tag tag-server">Server</span>
+        </div>
+        <div class="lab-scenario">
+          <div class="scenario-name">Crash after work</div>
+          <div class="scenario-desc">Output committed; final HTTP response missing</div>
+          <span class="scenario-tag tag-server">Server</span>
+        </div>
+        <div class="lab-scenario">
+          <div class="scenario-name">Concurrent retries</div>
+          <div class="scenario-desc">Five simultaneous requests, one operation ID</div>
+          <span class="scenario-tag tag-race">Race</span>
+        </div>
+      </div>
+
+      <div class="lab-footer">
+        <p>Local simulation only — no wallet, token or on-chain transfer is used in demo mode.
+           Arc Mainnet mode requires a deployed contract and funded wallet.</p>
+        <a class="btn-lab" href="/lab">
+          Run the simulation
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══════════════════════════════════════════
+     FOR DEVELOPERS
+══════════════════════════════════════════ -->
+<section class="section" id="developers">
+  <div class="container">
+    <div class="eyebrow">For developers</div>
+    <h2 class="section-title">Zero dependencies.<br>Real recovery.</h2>
+    <p class="section-desc">
+      The browser SDK uses the EIP-1193 wallet API directly —
+      no bundlers, no frameworks, no third-party runtime dependencies.
+    </p>
+
+    <div class="dev-grid">
+      <!-- Code block -->
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-title">sdk/ghostpay.js</span>
+          <span class="code-lang">TypeScript</span>
+        </div>
+        <div class="code-body"><pre><span class="c-comment">// Create a new operation (unique ID per API call)</span>
+<span class="c-keyword">const</span> <span class="c-var">ghostpay</span> = <span class="c-keyword">new</span> <span class="c-type">GhostPayClient</span>();
+<span class="c-keyword">const</span> <span class="c-var">op</span> = <span class="c-keyword">await</span> <span class="c-var">ghostpay</span>.<span class="c-fn">startDemo</span>();
+
+<span class="c-comment">// Inject fault — TCP drop after payment committed</span>
+<span class="c-keyword">try</span> {
+  <span class="c-keyword">await</span> <span class="c-var">ghostpay</span>.<span class="c-fn">attemptDemo</span>(<span class="c-var">op</span>.operationId, <span class="c-string">'lost-response'</span>);
+} <span class="c-keyword">catch</span> { <span class="c-comment">/* TCP response was intentionally lost */</span> }
+
+<span class="c-comment">// Retry with the SAME operationId — no second payment</span>
+<span class="c-keyword">const</span> <span class="c-var">recovered</span> = <span class="c-keyword">await</span> <span class="c-var">ghostpay</span>.<span class="c-fn">attemptDemo</span>(
+  <span class="c-var">op</span>.operationId,
+  <span class="c-string">'lost-response'</span>
+);
+
+console.<span class="c-fn">log</span>(<span class="c-var">recovered</span>.state.result);
+<span class="c-comment">// { reportId: 'RPT-...', riskScore: 42, confidence: 0.97 }</span>
+<span class="c-comment">// paymentCount = 1 even after 5 retries</span></pre></div>
+      </div>
+
+      <!-- Links -->
+      <div class="dev-links">
+        <a class="dev-link-card" href="https://github.com/Nauvvi1/ghostpay-recovery" target="_blank" rel="noopener noreferrer">
+          <div class="dev-link-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          </div>
+          <div class="dev-link-text">
+            <h4>GitHub Repository</h4>
+            <p>Source code, Solidity contracts, SDK and tests</p>
+          </div>
+          <span class="dev-link-arrow" aria-hidden="true">↗</span>
+        </a>
+
+        <a class="dev-link-card" href="/lab">
+          <div class="dev-link-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+          </div>
+          <div class="dev-link-text">
+            <h4>Interactive Failure Lab</h4>
+            <p>Run all four fault scenarios against the live backend</p>
+          </div>
+          <span class="dev-link-arrow" aria-hidden="true">↗</span>
+        </a>
+
+        <div class="dev-link-card" style="cursor:default;">
+          <div class="dev-link-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </div>
+          <div class="dev-link-text">
+            <h4>Node.js + SQLite backend</h4>
+            <p>Zero npm dependencies. Built-in Node 22 SQLite API. WAL mode for concurrent retries.</p>
+          </div>
         </div>
 
-        <section class="panel timeline-panel" id="history">
-          <div class="panel-head"><div><div class="panel-kicker">03 / EVIDENCE LOG</div><h2>Recovery timeline</h2><p>An append-only record of what happened before and after the failure.</p></div><span class="timestamp-chip" id="eventCount">0 EVENTS</span></div>
-          <div id="eventList" class="event-list"><div class="empty-events">No operation events yet. Select a failure and run a simulation to populate this log.</div></div>
-        </section>
-
-        <section class="bottom-callout" id="about"><div class="callout-icon">◈</div><div><h3>A reliability layer, not another payment button.</h3><p>Arc verifies USDC settlement. GhostPay links it to a uniquely identified API request, then recovers the result without charging again. This MVP does not guarantee fulfillment by third-party providers.</p></div><a class="docs-link" href="https://studio.arc.io/" target="_blank" rel="noopener noreferrer">Explore Arc Studio ↗</a></section>
-        <footer>© 2026 GhostPay · Hackathon MVP · Open source prototype <span>Made for an unreliable world.</span></footer>
+        <div class="dev-link-card" style="cursor:default;">
+          <div class="dev-link-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2H3v16h5v4l4-4h5l4-4V2z"/><path d="M10 8h4M10 12h4"/></svg>
+          </div>
+          <div class="dev-link-text">
+            <h4>GhostPay.sol — Solidity 0.8.24</h4>
+            <p>USDC receipt registry with reentrancy guard. Idempotent — replays return false, never double-charge.</p>
+          </div>
+        </div>
       </div>
-    </main>
+    </div>
   </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══════════════════════════════════════════
+     VERIFIED ON ARC TESTNET
+══════════════════════════════════════════ -->
+<section class="section" id="arc-testnet">
+  <div class="container">
+    <div class="eyebrow">On-chain proof</div>
+    <h2 class="section-title">Verified on Arc Testnet</h2>
+    <p class="section-desc">
+      Real transactions, real events — not a simulation. The first payment and its
+      idempotent replay are both confirmed on Arc Testnet.
+    </p>
+
+    <div class="tx-grid">
+      <div class="tx-card">
+        <div class="tx-label">First payment</div>
+        <div class="tx-hash">0x6d83dc091f01cb5ed4dd81dfbf0bfb<br>2628dc443aaf5afbfe4cd41ede5aba4d03</div>
+        <div class="tx-event">
+          <div class="tx-event-dot"></div>
+          <span>Event: <strong>PaymentRecorded</strong></span>
+        </div>
+        <div class="tx-event">
+          <div class="tx-event-dot"></div>
+          <span>Amount: <strong>100 000 units · 0.10 USDC</strong></span>
+        </div>
+        <div class="tx-event">
+          <div class="tx-event-dot"></div>
+          <span>Merchant balance: <strong>increased by 0.10 USDC</strong></span>
+        </div>
+        <a class="tx-explorer"
+           href="https://explorer.testnet.arc.io/tx/0x6d83dc091f01cb5ed4dd81dfbf0bfb2628dc443aaf5afbfe4cd41ede5aba4d03"
+           target="_blank" rel="noopener noreferrer">
+          View on Arc Explorer
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+        </a>
+      </div>
+
+      <div class="tx-card">
+        <div class="tx-label">Identical replay — no transfer</div>
+        <div class="tx-hash">0xc4415e2083161ab56bfe7d8887b9afb<br>38cefa0eaa2ec2ce66e064b7ba346645b</div>
+        <div class="tx-event">
+          <div class="tx-event-dot"></div>
+          <span>Event: <strong>PaymentReplayed</strong></span>
+        </div>
+        <div class="tx-event">
+          <div class="tx-event-dot"></div>
+          <span>USDC transferred: <strong>0 (no second debit)</strong></span>
+        </div>
+        <div class="tx-event">
+          <div class="tx-event-dot"></div>
+          <span>Payment count: <strong>still 1 after replay</strong></span>
+        </div>
+        <a class="tx-explorer"
+           href="https://explorer.testnet.arc.io/tx/0xc4415e2083161ab56bfe7d8887b9afb38cefa0eaa2ec2ce66e064b7ba346645b"
+           target="_blank" rel="noopener noreferrer">
+          View on Arc Explorer
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Contract banner -->
+    <div class="contract-banner">
+      <span class="contract-banner-label">Contract</span>
+      <span class="contract-addr">0xc0a490b3a7ad86d0a2c25d8d20ee2ca47b34e874</span>
+      <span class="chain-badge">Arc Testnet</span>
+      <a class="tx-explorer"
+         href="https://explorer.testnet.arc.io/address/0xc0a490b3a7ad86d0a2c25d8d20ee2ca47b34e874"
+         target="_blank" rel="noopener noreferrer" style="margin-top:0;">
+        View contract
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════ -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a class="logo" href="/" style="font-size:18px;">
+          <div class="logo-mark" style="width:28px;height:28px;" aria-hidden="true">
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;">
+              <path d="M8 2L13 5V11L8 14L3 11V5L8 2Z" stroke="#0A2218" stroke-width="1.5" fill="none"/>
+              <circle cx="8" cy="8" r="2" fill="#0A2218"/>
+            </svg>
+          </div>
+          ghost<span class="logo-accent">pay</span>
+        </a>
+        <p class="footer-desc">
+          Payment recovery protocol for AI agents and paid APIs.
+          Built for Arc — where USDC is the native gas token.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h5>Product</h5>
+        <ul class="footer-links">
+          <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="/lab">Failure Lab</a></li>
+          <li><a href="#arc-testnet">Arc Testnet proof</a></li>
+          <li><a href="#developers">Developers</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>Resources</h5>
+        <ul class="footer-links">
+          <li><a href="https://github.com/Nauvvi1/ghostpay-recovery" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+          <li><a href="https://explorer.testnet.arc.io/address/0xc0a490b3a7ad86d0a2c25d8d20ee2ca47b34e874" target="_blank" rel="noopener noreferrer">Contract on Arc</a></li>
+          <li><a href="https://docs.arc.io" target="_blank" rel="noopener noreferrer">Arc Docs</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>Network</h5>
+        <ul class="footer-links">
+          <li><a href="https://explorer.testnet.arc.io" target="_blank" rel="noopener noreferrer">Arc Testnet Explorer</a></li>
+          <li><a href="https://studio.arc.io" target="_blank" rel="noopener noreferrer">Arc Studio</a></li>
+          <li><a href="https://faucet.circle.com" target="_blank" rel="noopener noreferrer">Testnet Faucet</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2026 GhostPay · MIT License · Hackathon MVP · Open source prototype</p>
+      <p class="footer-disclaimer">
+        Not audited. Do not use for significant funds.
+        Arc Mainnet requires independent deployment and review.
+        Testnet only.
+      </p>
+    </div>
+  </div>
+</footer>
+
 </body>
 </html>

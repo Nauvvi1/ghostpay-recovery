@@ -131,7 +131,9 @@ export function createApp({repo=openRepository(DB_FILE),rpc=new RpcClient(),mode
       const source=await readFile(SDK_FILE);res.writeHead(200,{'content-type':'text/javascript; charset=utf-8','cache-control':'no-cache'});res.end(source);return;
     }
     if(req.method==='GET'&& !path.startsWith('/api/')) {
-      let relative=path==='/'?'index.html':decodeURIComponent(path.slice(1));
+      // /lab and /lab/ both serve the Failure Lab dashboard.
+      // / serves the new landing page (index.html).
+      let relative=path==='/'?'index.html':path==='/lab'||path==='/lab/'?'lab.html':decodeURIComponent(path.slice(1));
       const filepath=resolve(PUBLIC,relative);
       if(!filepath.startsWith(PUBLIC+sep)&&filepath!==PUBLIC)return error(res,403,'Forbidden');
       if(!FILE_TYPES[extname(filepath)])return error(res,404,'Not found');
@@ -141,7 +143,9 @@ export function createApp({repo=openRepository(DB_FILE),rpc=new RpcClient(),mode
           // frame-ancestors omitted — Arc Studio preview iframes the page from *.preview.studio.arc.io.
           // connect-src allows same-origin API + Arc RPC endpoints used by the EIP-1193 SDK in Arc mode.
           // arc-studio-allow-onchain-literal (CSP header value, not RPC call code)
-          'content-security-policy':"default-src 'self'; img-src 'self' data:; connect-src 'self' https://rpc.testnet.arc.io https://rpc.mainnet.arc.io; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'"});res.end(data);return;
+          // style-src allows fonts.googleapis.com for the landing page font stylesheet.
+          // font-src allows fonts.gstatic.com for the actual font files.
+          'content-security-policy':"default-src 'self'; img-src 'self' data:; connect-src 'self' https://rpc.testnet.arc.io https://rpc.mainnet.arc.io; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; object-src 'none'; base-uri 'self'"});res.end(data);return;
       }catch{return error(res,404,'Not found');}
     }
     return error(res,404,'Route not found');
