@@ -4,3 +4,7 @@ node_modules/
 *.sqlite-*
 coverage/
 .DS_Store
+
+# Foundry build artifacts
+out/
+cache/

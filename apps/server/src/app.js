@@ -12,6 +12,44 @@ const FILE_TYPES={'.html':'text/html; charset=utf-8','.css':'text/css; charset=u
 const SCENARIOS=new Set(['normal','lost-response','crash-after-payment','crash-after-job','concurrent']);
 const NO_CACHE={'cache-control':'no-store','x-content-type-options':'nosniff'};
 
+// ---------------------------------------------------------------------------
+// CORS — allowlist-based, NOT reflected.
+//
+// Allowed origins:
+//   1. Any *.preview.studio.arc.io subdomain  — Arc Studio workbench preview.
+//   2. null / undefined (same-origin or local file)  — local dev / Docker.
+//   3. GHOSTPAY_ALLOWED_ORIGIN env var  — optional extra origin for self-hosted
+//      deployments (e.g. "https://ghostpay.example.com"). Leave unset unless
+//      you are hosting the frontend on a separate domain from the API.
+//
+// Requests from any other Origin receive no ACAO header; the browser will block
+// the cross-origin request as intended.
+//
+// NOTE: GhostPay's /api/* endpoints are not authenticated — they do not hold
+// any secrets and carry only operation IDs. Even so, reflecting an arbitrary
+// Origin would allow any site to issue demo/start or demo/attempt calls on
+// behalf of a visiting user's browser, which is unnecessary.
+// ---------------------------------------------------------------------------
+const EXTRA_ORIGIN = process.env.GHOSTPAY_ALLOWED_ORIGIN || '';
+function isAllowedOrigin(origin) {
+  if (!origin) return true; // same-origin / no Origin header
+  if (/^https:\/\/[a-z0-9-]+\.preview\.studio\.arc\.io$/.test(origin)) return true;
+  if (EXTRA_ORIGIN && origin === EXTRA_ORIGIN) return true;
+  // Allow localhost and 127.0.0.1 on any port for local development.
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
+  return false;
+}
+function applyCors(req, res) {
+  const origin = req.headers['origin'];
+  if (isAllowedOrigin(origin)) {
+    if (origin) res.setHeader('access-control-allow-origin', origin);
+    res.setHeader('access-control-allow-methods', 'GET,POST,OPTIONS');
+    res.setHeader('access-control-allow-headers', 'content-type');
+    res.setHeader('vary', 'Origin');
+  }
+  // No ACAO header for disallowed origins — browser blocks the request.
+}
+
 function json(res,status,body){res.writeHead(status,{...NO_CACHE,'content-type':'application/json; charset=utf-8'});res.end(JSON.stringify(body));}
 function error(res,status,message){json(res,status,{error:message});}
 async function bodyJson(req){
@@ -26,6 +64,9 @@ export function createApp({repo=openRepository(DB_FILE),rpc=new RpcClient(),mode
   async function handle(req,res){
     const url=new URL(req.url||'/', 'http://localhost');
     const path=url.pathname;
+    // CORS: allowlist check + preflight response before any routing.
+    applyCors(req, res);
+    if(req.method==='OPTIONS'){res.writeHead(204,{'content-length':'0'});res.end();return;}
     if(req.method==='GET'&&path==='/api/config')return json(res,200,{
       mode,arcReady:mainnetReady,chainId:CHAIN_ID,rpcUrl:RPC_URL,contractAddress:mainnetReady?contract:null,
       merchantAddress:mainnetReady?merchant:null,usdcAddress:USDC_ADDRESS,amountUnits:PRICE_UNITS,amountUSDC:'0.10',selectors:ABI,
@@ -96,7 +137,11 @@ export function createApp({repo=openRepository(DB_FILE),rpc=new RpcClient(),mode
       if(!FILE_TYPES[extname(filepath)])return error(res,404,'Not found');
       try{
         const data=await readFile(filepath);
-        res.writeHead(200,{'content-type':FILE_TYPES[extname(filepath)],'x-content-type-options':'nosniff','cache-control':'no-cache','content-security-policy':"default-src 'self'; img-src 'self' data:; connect-src 'self'; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"});res.end(data);return;
+        res.writeHead(200,{'content-type':FILE_TYPES[extname(filepath)],'x-content-type-options':'nosniff','cache-control':'no-cache',
+          // frame-ancestors omitted — Arc Studio preview iframes the page from *.preview.studio.arc.io.
+          // connect-src allows same-origin API + Arc RPC endpoints used by the EIP-1193 SDK in Arc mode.
+          // arc-studio-allow-onchain-literal (CSP header value, not RPC call code)
+          'content-security-policy':"default-src 'self'; img-src 'self' data:; connect-src 'self' https://rpc.testnet.arc.io https://rpc.mainnet.arc.io; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'"});res.end(data);return;
       }catch{return error(res,404,'Not found');}
     }
     return error(res,404,'Route not found');

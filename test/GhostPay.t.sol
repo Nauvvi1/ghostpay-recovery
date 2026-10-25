@@ -77,12 +77,15 @@ contract GhostPayTest {
         require(ghost.paymentKey(address(buyer),OP)!=ghost.paymentKey(address(otherBuyer),OP),"collision");
     }
 
-    function testFailedTransferDoesNotRecordReceipt() public {
+    // Renamed from testFail* — Foundry removed testFail* support in recent versions.
+    // The test verifies that a transfer exceeding the payer's allowance reverts and
+    // does NOT leave a receipt entry (atomicity guarantee).
+    function test_RevertWhen_TransferFailsNoReceiptRecorded() public {
         bytes32 op2=keccak256("unfunded-request");
-        bool failed;
-        try buyer.pay(ghost,op2,merchant,2000000,REQUEST) returns (bool) {failed=false;}
-        catch {failed=true;}
-        require(failed,"should fail on insufficient token balance/allowance");
+        bool reverted;
+        try buyer.pay(ghost,op2,merchant,2000000,REQUEST) returns (bool) {reverted=false;}
+        catch {reverted=true;}
+        require(reverted,"should revert on insufficient token balance/allowance");
         (,uint256 saved,,)=ghost.paymentOf(address(buyer),op2);
         require(saved==0,"receipt must roll back on failed token transfer");
     }
