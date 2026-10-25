@@ -1,0 +1,15 @@
+services:
+  ghostpay:
+    build: .
+    ports:
+      - "127.0.0.1:4173:4173"
+    volumes:
+      - ghostpay-data:/srv/ghostpay/data
+    environment:
+      HOST: 0.0.0.0
+      PAYMENT_MODE: ${PAYMENT_MODE:-demo}
+      ARC_RPC_URL: ${ARC_RPC_URL:-https://rpc.mainnet.arc.io}
+      ARC_CONTRACT_ADDRESS: ${ARC_CONTRACT_ADDRESS:-}
+      MERCHANT_ADDRESS: ${MERCHANT_ADDRESS:-}
+volumes:
+  ghostpay-data:
