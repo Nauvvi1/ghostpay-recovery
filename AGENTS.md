@@ -8,10 +8,40 @@
 
 Constructor arg: `0x3600000000000000000000000000000000000000` (Arc Testnet USDC ERC-20)
 
-## Arc Mainnet — NOT yet deployed
+## Arc Mainnet Payment UI
 
-Arc Mainnet USDC ERC-20: `0x3600000000000000000000000000000000000000`
-Deploy independently — see README.md and docs/ARC_STUDIO_GUIDE.md.
+**Page:** `/arc-pay` → `apps/web/arc-pay.html` + `arc-pay.js` + `arc-pay.css`
+
+The Arc Pay page provides a full browser-based MetaMask payment flow against the mainnet contract.
+It does NOT require `PAYMENT_MODE=arc` on the backend — the public Vercel demo stays in demo mode.
+All on-chain interactions are client-side via `eth_sendTransaction` / `eth_call` through MetaMask.
+
+### Verified deployed interface (from on-chain tx decoding)
+
+| Function | Selector | Signature |
+|---|---|---|
+| `pay` | `0x926b1e18` | `pay(bytes32 operationId, address merchant, uint256 amount, bytes32 requestHash)` |
+| `paymentOf` | `0x62609290` | `paymentOf(address payer, bytes32 operationId) returns (address merchant, uint256 amount, bytes32 requestHash, uint256 blockNumber)` |
+| `usdc` | `0x3e413bee` | `usdc() returns (address)` — returns `0x3600000000000000000000000000000000000000` ✓ |
+
+Note: The deployed mainnet contract has a different `pay()` parameter order than `contracts/GhostPay.sol`
+(which uses `pay(bytes32,bytes32,address,uint256)`). The Arc Pay page uses the verified selectors above.
+
+### Verified mainnet transactions
+
+| Tx | Block | Event |
+|---|---|---|
+| `0x760aca41…54b88395` | 28,003,123 | Deploy |
+| `0xcf65a052…26f9d7a` | 28,004,442 | USDC approve 0.10 |
+| `0xeea582b5…b6ef032` | 28,006,631 | PaymentRecorded |
+| `0xf541ea5b…624c70` | 28,006,967 | PaymentReplayed |
+
+## Arc Mainnet — DEPLOYED
+
+Contract: `0xa651aaCB6Bb20263ec5Ac8df243adda01a1CF9e6`
+USDC ERC-20: `0x3600000000000000000000000000000000000000`
+Chain ID: 5042 · RPC: `https://rpc.mainnet.arc.io`
+Explorer: https://explorer.arc.io/address/0xa651aaCB6Bb20263ec5Ac8df243adda01a1CF9e6
 Never deploy MockUSDC to mainnet.
 
 ## Environment variables (Arc Testnet mode)

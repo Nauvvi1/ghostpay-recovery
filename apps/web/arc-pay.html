@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#080F14" />
+  <meta name="description" content="GhostPay Arc Mainnet — real USDC payments with idempotent recovery." />
+  <title>GhostPay — Arc Mainnet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="/landing.css" />
+  <link rel="stylesheet" href="/arc-pay.css" />
+  <script type="module" src="/arc-pay.js"></script>
+</head>
+<body>
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <header class="site-header" id="top">
+    <div class="header-inner">
+      <a class="logo" href="/">
+        <span class="logo-mark">✳</span>ghost<span class="logo-accent">pay</span>
+      </a>
+      <nav class="header-nav" aria-label="Site navigation">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/lab" class="nav-link">Failure Lab</a>
+        <a href="/arc-pay" class="nav-link active">Arc Mainnet</a>
+        <a href="https://github.com/Nauvvi1/ghostpay-recovery" class="nav-link" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+      </nav>
+      <a href="/lab" class="header-cta">Open Failure Lab</a>
+    </div>
+  </header>
+
+  <main class="arc-shell">
+
+    <!-- ── Page title ──────────────────────────────────────────────────── -->
+    <section class="arc-hero">
+      <div class="arc-eyebrow">
+        <span class="mainnet-badge">● MAINNET</span>
+        <span class="arc-chain-label">Arc · Chain ID 5042</span>
+      </div>
+      <h1>Real USDC payments,<br/>with recovery built in.</h1>
+      <p class="arc-subtitle">Connect MetaMask, approve exactly 0.10 USDC, and pay once. Retry as many times as you like — the contract records the first payment and replays all duplicates at zero cost.</p>
+      <div class="arc-verified-strip">
+        <span class="vs-label">Previously verified on-chain:</span>
+        <a class="vs-link" href="https://explorer.arc.io/tx/0xeea582b5493a9ffb53cb3a0acfffcb34007aeb19055e4dd51709840a1b6ef032" target="_blank" rel="noopener noreferrer">PaymentRecorded ↗</a>
+        <a class="vs-link" href="https://explorer.arc.io/tx/0xf541ea5b35c82b0de0ebb7a4dc459313c688c5b2b2ff6030ea58657cbf624c70" target="_blank" rel="noopener noreferrer">PaymentReplayed ↗</a>
+      </div>
+    </section>
+
+    <!-- ── Two-column layout ───────────────────────────────────────────── -->
+    <div class="arc-grid">
+
+      <!-- ── Left: payment flow ─────────────────────────────────────────── -->
+      <section class="arc-card payment-card" aria-label="Payment flow">
+        <div class="arc-card-head">
+          <div>
+            <div class="card-kicker">01 / WALLET</div>
+            <h2>Initiate payment</h2>
+          </div>
+          <span class="mode-badge real-badge">REAL USDC</span>
+        </div>
+
+        <div class="real-warning">
+          <strong>⚠ Real funds.</strong> This sends a genuine 0.10 USDC transaction on Arc Mainnet (chain ID 5042). Transactions are irreversible. Review every MetaMask prompt before approving.
+        </div>
+
+        <!-- Step indicator -->
+        <div class="step-track">
+          <div class="step-item" id="stepConnect" data-step="connect">
+            <div class="step-dot">1</div>
+            <span>Connect wallet</span>
+          </div>
+          <div class="step-sep">→</div>
+          <div class="step-item" id="stepPrepare" data-step="prepare">
+            <div class="step-dot">2</div>
+            <span>Prepare op</span>
+          </div>
+          <div class="step-sep">→</div>
+          <div class="step-item" id="stepApprove" data-step="approve">
+            <div class="step-dot">3</div>
+            <span>Approve</span>
+          </div>
+          <div class="step-sep">→</div>
+          <div class="step-item" id="stepPay" data-step="pay">
+            <div class="step-dot">4</div>
+            <span>Pay once</span>
+          </div>
+          <div class="step-sep">→</div>
+          <div class="step-item" id="stepRecover" data-step="recover">
+            <div class="step-dot">5</div>
+            <span>Recover</span>
+          </div>
+        </div>
+
+        <!-- Wallet -->
+        <div class="field-block">
+          <div class="field-label">CONNECTED WALLET</div>
+          <div class="field-value mono" id="walletAddr">Not connected</div>
+        </div>
+
+        <!-- USDC balance -->
+        <div class="field-block">
+          <div class="field-label">ARC MAINNET USDC BALANCE</div>
+          <div class="field-value" id="usdcBalance">—</div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="button-stack">
+          <button id="btnConnect" class="arc-btn primary-btn" type="button">Connect MetaMask to Arc Mainnet</button>
+          <button id="btnPrepare" class="arc-btn secondary-btn" type="button" disabled>Prepare new 0.10 USDC operation</button>
+          <button id="btnPay" class="arc-btn primary-btn real-btn" type="button" disabled>Approve (if needed) &amp; Pay 0.10 USDC</button>
+          <button id="btnReplay" class="arc-btn secondary-btn" type="button" disabled>Replay same operation (no new payment)</button>
+          <button id="btnRecover" class="arc-btn secondary-btn" type="button" disabled>Recover from Arc — query chain state</button>
+        </div>
+
+        <!-- Status message -->
+        <div class="status-line" id="statusLine">Ready. Connect your wallet to begin.</div>
+
+        <!-- No private key disclaimer -->
+        <div class="disclaimer">
+          <span>🔒</span> GhostPay never requests your seed phrase or private key. All transactions require explicit MetaMask approval.
+        </div>
+      </section>
+
+      <!-- ── Right: operation state ──────────────────────────────────────── -->
+      <section class="arc-card state-card" aria-label="Operation state">
+        <div class="arc-card-head">
+          <div>
+            <div class="card-kicker">02 / RECOVERY STATE</div>
+            <h2>Operation inspector</h2>
+          </div>
+          <span class="status-chip" id="opStatusChip">IDLE</span>
+        </div>
+
+        <!-- Operation ID -->
+        <div class="field-block">
+          <div class="field-label">OPERATION ID <span class="field-note">(immutable across retries)</span></div>
+          <div class="field-row">
+            <span class="field-value mono small-mono" id="opId">No active operation</span>
+            <button id="btnCopyId" class="copy-btn" type="button" disabled title="Copy operation ID">⧉</button>
+          </div>
+        </div>
+
+        <!-- Request hash -->
+        <div class="field-block">
+          <div class="field-label">REQUEST HASH <span class="field-note">(derived from operationId)</span></div>
+          <div class="field-value mono small-mono" id="opReqHash">—</div>
+        </div>
+
+        <!-- Ledger -->
+        <div class="ledger-row">
+          <div class="ledger-cell">
+            <div class="ledger-label">USDC PAID</div>
+            <div class="ledger-big"><span id="ledgerPaid">0.00</span><small> USDC</small></div>
+          </div>
+          <div class="ledger-sep"></div>
+          <div class="ledger-cell">
+            <div class="ledger-label">RETRIES</div>
+            <div class="ledger-big" id="ledgerRetries">0</div>
+          </div>
+          <div class="ledger-sep"></div>
+          <div class="ledger-cell">
+            <div class="ledger-label">EXTRA DEBITS</div>
+            <div class="ledger-big mint-num" id="ledgerDups">0</div>
+          </div>
+        </div>
+
+        <!-- Payment source -->
+        <div class="field-block" id="paymentSourceBlock" hidden>
+          <div class="field-label">PAYMENT SOURCE</div>
+          <div class="field-value" id="paymentSource">—</div>
+        </div>
+
+        <!-- Transaction links -->
+        <div class="tx-links" id="txLinks" hidden>
+          <div class="field-label">TRANSACTION LINKS</div>
+          <div id="txLinkList"></div>
+        </div>
+
+        <!-- Output / result -->
+        <div class="output-box" id="outputBox">
+          <span class="output-placeholder">▧ Connect wallet and prepare an operation to begin.</span>
+        </div>
+
+        <!-- Events -->
+        <div class="events-head">
+          <span class="field-label">EVENT TIMELINE</span>
+          <span class="event-count" id="eventCount">0 EVENTS</span>
+        </div>
+        <div class="event-list" id="eventList">
+          <div class="empty-events">No events yet.</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ── Read-only receipt lookup ──────────────────────────────────── -->
+    <section class="lookup-section" id="lookup">
+      <div class="verified-head">
+        <div class="section-kicker">READ-ONLY LOOKUP</div>
+        <h2>Inspect an existing payment receipt</h2>
+        <p>Query <code>paymentOf(payer, operationId)</code> on Arc Mainnet without connecting a wallet or sending any transaction.</p>
+      </div>
+
+      <div class="lookup-form">
+        <div class="lookup-field">
+          <label class="field-label" for="lookupPayer">PAYER ADDRESS</label>
+          <input id="lookupPayer" class="lookup-input mono" type="text" spellcheck="false"
+            placeholder="0x…"
+            value="0x198b9199b2b4be050e39b608768e9cb3fe887bab" />
+        </div>
+        <div class="lookup-field">
+          <label class="field-label" for="lookupOpId">OPERATION ID (bytes32)</label>
+          <input id="lookupOpId" class="lookup-input mono" type="text" spellcheck="false"
+            placeholder="0x…"
+            value="0x6d74038d0074c8394fc60a52e48c7cb302f30c6298bff7ede8f3e6ca9bfa86a9" />
+        </div>
+        <button id="btnLookup" class="arc-btn secondary-btn" type="button">Query on-chain receipt</button>
+      </div>
+
+      <div id="lookupResult" class="lookup-result" hidden>
+        <div class="lookup-result-inner" id="lookupResultInner"></div>
+      </div>
+
+      <div class="lookup-note">
+        <p>Pre-filled with the verified mainnet payment from payer <code>0x198b…7bab</code>, operationId <code>0x6d74…86a9</code>. This read requires no wallet and costs no gas — it is an <code>eth_call</code> against the Arc Mainnet RPC.</p>
+      </div>
+    </section>
+
+    <!-- ── Verified transactions section ──────────────────────────────── -->
+    <section class="verified-section">
+      <div class="verified-head">
+        <div class="section-kicker">CHAIN EVIDENCE</div>
+        <h2>Verified Arc Mainnet transactions</h2>
+        <p>These are the real transactions from the first GhostPay test on Arc Mainnet. Block data confirmed via <code>eth_getTransactionReceipt</code>.</p>
+      </div>
+
+      <div class="tx-evidence-grid">
+        <div class="tx-evidence-card">
+          <div class="tx-ev-label">CONTRACT DEPLOY</div>
+          <div class="tx-ev-block">Block 28,003,123</div>
+          <div class="tx-ev-hash mono">0x760aca41f99f44eb…54b88395</div>
+          <div class="tx-ev-status success">SUCCESS</div>
+          <a class="tx-ev-link" href="https://explorer.arc.io/tx/0x760aca41f99f44ebeb767f37fc5f54f8dc4085fbd8dac885b391aced54b88395" target="_blank" rel="noopener noreferrer">View on Arc Explorer ↗</a>
+        </div>
+
+        <div class="tx-evidence-card">
+          <div class="tx-ev-label">USDC APPROVE (0.10)</div>
+          <div class="tx-ev-block">Block 28,004,442</div>
+          <div class="tx-ev-hash mono">0xcf65a0526c7c1bbd…26f9d7a</div>
+          <div class="tx-ev-status success">SUCCESS</div>
+          <a class="tx-ev-link" href="https://explorer.arc.io/tx/0xcf65a0526c7c1bbd42046eaa0e0fc3cdc339c4567c6066a6ca53453ac26f9d7a" target="_blank" rel="noopener noreferrer">View on Arc Explorer ↗</a>
+        </div>
+
+        <div class="tx-evidence-card highlight-evidence">
+          <div class="tx-ev-label">FIRST PAYMENT — PaymentRecorded</div>
+          <div class="tx-ev-block">Block 28,006,631</div>
+          <div class="tx-ev-hash mono">0xeea582b5493a9ffb…b6ef032</div>
+          <div class="tx-ev-detail">0.10 USDC · payer → merchant</div>
+          <div class="tx-ev-status success">SUCCESS · EVENT EMITTED</div>
+          <a class="tx-ev-link" href="https://explorer.arc.io/tx/0xeea582b5493a9ffb53cb3a0acfffcb34007aeb19055e4dd51709840a1b6ef032" target="_blank" rel="noopener noreferrer">View on Arc Explorer ↗</a>
+        </div>
+
+        <div class="tx-evidence-card highlight-evidence">
+          <div class="tx-ev-label">IDENTICAL REPLAY — PaymentReplayed</div>
+          <div class="tx-ev-block">Block 28,006,967</div>
+          <div class="tx-ev-hash mono">0xf541ea5b35c82b0d…624c70</div>
+          <div class="tx-ev-detail">Zero USDC transferred · same operationId</div>
+          <div class="tx-ev-status replay">REPLAYED · NO DEBIT</div>
+          <a class="tx-ev-link" href="https://explorer.arc.io/tx/0xf541ea5b35c82b0de0ebb7a4dc459313c688c5b2b2ff6030ea58657cbf624c70" target="_blank" rel="noopener noreferrer">View on Arc Explorer ↗</a>
+        </div>
+      </div>
+
+      <div class="verified-footer">
+        <div class="vf-item">
+          <span class="vf-label">Contract</span>
+          <a class="vf-value mono" href="https://explorer.arc.io/address/0xa651aaCB6Bb20263ec5Ac8df243adda01a1CF9e6" target="_blank" rel="noopener noreferrer">0xa651aaCB6Bb20263ec5Ac8df243adda01a1CF9e6 ↗</a>
+        </div>
+        <div class="vf-item">
+          <span class="vf-label">USDC</span>
+          <span class="vf-value mono">0x3600000000000000000000000000000000000000</span>
+        </div>
+        <div class="vf-item">
+          <span class="vf-label">Chain ID</span>
+          <span class="vf-value">5042 (Arc Mainnet)</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">ghost<span class="logo-accent">pay</span> · Hackathon MVP</div>
+      <nav class="footer-nav">
+        <a href="/">Home</a>
+        <a href="/lab">Failure Lab</a>
+        <a href="/arc-pay">Arc Mainnet</a>
+        <a href="https://github.com/Nauvvi1/ghostpay-recovery" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://explorer.arc.io/address/0xa651aaCB6Bb20263ec5Ac8df243adda01a1CF9e6" target="_blank" rel="noopener noreferrer">Contract</a>
+      </nav>
+      <div class="footer-note">Arc Mainnet · Chain ID 5042 · Real USDC. Not financial advice.</div>
+    </div>
+  </footer>
+</body>
+</html>

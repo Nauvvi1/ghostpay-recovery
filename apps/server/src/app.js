@@ -136,7 +136,7 @@ export function createApp({repo=openRepository(DB_FILE),rpc=new RpcClient(),mode
     if(req.method==='GET'&& !path.startsWith('/api/')) {
       // /lab and /lab/ both serve the Failure Lab dashboard.
       // / serves the new landing page (index.html).
-      let relative=path==='/'?'index.html':path==='/lab'||path==='/lab/'?'lab.html':decodeURIComponent(path.slice(1));
+      let relative=path==='/'?'index.html':path==='/lab'||path==='/lab/'?'lab.html':path==='/arc-pay'||path==='/arc-pay/'?'arc-pay.html':decodeURIComponent(path.slice(1));
       const filepath=resolve(PUBLIC,relative);
       if(!filepath.startsWith(PUBLIC+sep)&&filepath!==PUBLIC)return error(res,403,'Forbidden');
       if(!FILE_TYPES[extname(filepath)])return error(res,404,'Not found');

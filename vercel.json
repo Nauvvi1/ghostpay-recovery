@@ -14,6 +14,8 @@
     { "source": "/api/:path*", "destination": "/api/index.js" },
     { "source": "/lab",        "destination": "/lab.html" },
     { "source": "/lab/",       "destination": "/lab.html" },
+    { "source": "/arc-pay",    "destination": "/arc-pay.html" },
+    { "source": "/arc-pay/",   "destination": "/arc-pay.html" },
     { "source": "/sdk/:file*", "destination": "/sdk/:file*" }
   ],
 
