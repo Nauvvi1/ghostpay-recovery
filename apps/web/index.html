@@ -310,7 +310,7 @@
 
       <div class="lab-footer">
         <p>Demo mode: simulated payments with real Turso persistence — no wallet or token required.
-           Arc Testnet is deployed; Arc Mainnet requires independent deployment and review.</p>
+           Both Arc Testnet and Arc Mainnet contracts are deployed and verified with real USDC transactions.</p>
         <a class="btn-lab" href="/lab">
           Run the simulation
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -417,16 +417,18 @@ console.<span class="c-fn">log</span>(<span class="c-var">recovered</span>.state
 <section class="section" id="arc-testnet">
   <div class="container">
     <div class="eyebrow">On-chain proof</div>
-    <h2 class="section-title">Verified on Arc Testnet</h2>
+    <h2 class="section-title">Verified on Arc Testnet &amp; Mainnet</h2>
     <p class="section-desc">
-      Real transactions, real events — not a simulation. The first payment and its
-      idempotent replay are both confirmed on Arc Testnet.
+      Real transactions, real events — not a simulation. Payment and idempotent replay
+      are confirmed on both Arc Testnet and Arc Mainnet with real USDC.
     </p>
 
+    <!-- Mainnet transactions -->
+    <p style="font-size:0.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;font-weight:600;">Arc Mainnet · Chain ID 5042</p>
     <div class="tx-grid">
       <div class="tx-card">
-        <div class="tx-label">First payment</div>
-        <div class="tx-hash">0x6d83dc091f01cb5ed4dd81dfbf0bfb<br>2628dc443aaf5afbfe4cd41ede5aba4d03</div>
+        <div class="tx-label">First real USDC payment</div>
+        <div class="tx-hash">0xeea582b5493a9ffb53cb3a0acfffcb34<br>007aeb19055e4dd51709840a1b6ef032</div>
         <div class="tx-event">
           <div class="tx-event-dot"></div>
           <span>Event: <strong>PaymentRecorded</strong></span>
@@ -440,16 +442,16 @@ console.<span class="c-fn">log</span>(<span class="c-var">recovered</span>.state
           <span>Merchant balance: <strong>increased by 0.10 USDC</strong></span>
         </div>
         <a class="tx-explorer"
-           href="https://explorer.testnet.arc.io/tx/0x6d83dc091f01cb5ed4dd81dfbf0bfb2628dc443aaf5afbfe4cd41ede5aba4d03"
+           href="https://explorer.arc.io/tx/0xeea582b5493a9ffb53cb3a0acfffcb34007aeb19055e4dd51709840a1b6ef032"
            target="_blank" rel="noopener noreferrer">
-          View on Arc Explorer
+          View on Arc Mainnet Explorer
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
         </a>
       </div>
 
       <div class="tx-card">
-        <div class="tx-label">Identical replay — no transfer</div>
-        <div class="tx-hash">0xc4415e2083161ab56bfe7d8887b9afb<br>38cefa0eaa2ec2ce66e064b7ba346645b</div>
+        <div class="tx-label">Identical replay — zero transfer</div>
+        <div class="tx-hash">0xf541ea5b35c82b0de0ebb7a4dc459313<br>c688c5b2b2ff6030ea58657cbf624c70</div>
         <div class="tx-event">
           <div class="tx-event-dot"></div>
           <span>Event: <strong>PaymentReplayed</strong></span>
@@ -463,19 +465,74 @@ console.<span class="c-fn">log</span>(<span class="c-var">recovered</span>.state
           <span>Payment count: <strong>still 1 after replay</strong></span>
         </div>
         <a class="tx-explorer"
-           href="https://explorer.testnet.arc.io/tx/0xc4415e2083161ab56bfe7d8887b9afb38cefa0eaa2ec2ce66e064b7ba346645b"
+           href="https://explorer.arc.io/tx/0xf541ea5b35c82b0de0ebb7a4dc459313c688c5b2b2ff6030ea58657cbf624c70"
            target="_blank" rel="noopener noreferrer">
-          View on Arc Explorer
+          View on Arc Mainnet Explorer
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
         </a>
       </div>
     </div>
 
-    <!-- Contract banner -->
+    <!-- Mainnet contract banner -->
+    <div class="contract-banner" style="margin-bottom:1rem;">
+      <span class="contract-banner-label">Mainnet Contract</span>
+      <span class="contract-addr">0xa651aaCB6Bb20263ec5Ac8df243adda01a1CF9e6</span>
+      <span class="chain-badge">Arc Mainnet</span>
+      <a class="tx-explorer"
+         href="https://explorer.arc.io/address/0xa651aaCB6Bb20263ec5Ac8df243adda01a1CF9e6"
+         target="_blank" rel="noopener noreferrer" style="margin-top:0;">
+        View contract
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+      </a>
+    </div>
+
+    <!-- Testnet transactions -->
+    <p style="font-size:0.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1rem;font-weight:600;">Arc Testnet · Earlier verification</p>
+    <div class="tx-grid">
+      <div class="tx-card">
+        <div class="tx-label">Testnet first payment</div>
+        <div class="tx-hash">0x6d83dc091f01cb5ed4dd81dfbf0bfb<br>2628dc443aaf5afbfe4cd41ede5aba4d03</div>
+        <div class="tx-event">
+          <div class="tx-event-dot"></div>
+          <span>Event: <strong>PaymentRecorded</strong></span>
+        </div>
+        <div class="tx-event">
+          <div class="tx-event-dot"></div>
+          <span>Amount: <strong>0.10 USDC</strong></span>
+        </div>
+        <a class="tx-explorer"
+           href="https://explorer.testnet.arc.io/tx/0x6d83dc091f01cb5ed4dd81dfbf0bfb2628dc443aaf5afbfe4cd41ede5aba4d03"
+           target="_blank" rel="noopener noreferrer">
+          View on Arc Testnet Explorer
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+        </a>
+      </div>
+
+      <div class="tx-card">
+        <div class="tx-label">Testnet replay — no transfer</div>
+        <div class="tx-hash">0xc4415e2083161ab56bfe7d8887b9afb<br>38cefa0eaa2ec2ce66e064b7ba346645b</div>
+        <div class="tx-event">
+          <div class="tx-event-dot"></div>
+          <span>Event: <strong>PaymentReplayed</strong></span>
+        </div>
+        <div class="tx-event">
+          <div class="tx-event-dot"></div>
+          <span>USDC transferred: <strong>0</strong></span>
+        </div>
+        <a class="tx-explorer"
+           href="https://explorer.testnet.arc.io/tx/0xc4415e2083161ab56bfe7d8887b9afb38cefa0eaa2ec2ce66e064b7ba346645b"
+           target="_blank" rel="noopener noreferrer">
+          View on Arc Testnet Explorer
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Testnet contract banner -->
     <div class="contract-banner">
-      <span class="contract-banner-label">Contract</span>
+      <span class="contract-banner-label">Testnet Contract</span>
       <span class="contract-addr">0xc0a490b3a7ad86d0a2c25d8d20ee2ca47b34e874</span>
-      <span class="chain-badge">Arc Testnet</span>
+      <span class="chain-badge" style="background:rgba(101,240,199,.08);color:var(--text-muted);border-color:rgba(101,240,199,.2);">Arc Testnet</span>
       <a class="tx-explorer"
          href="https://explorer.testnet.arc.io/address/0xc0a490b3a7ad86d0a2c25d8d20ee2ca47b34e874"
          target="_blank" rel="noopener noreferrer" style="margin-top:0;">
@@ -525,7 +582,7 @@ console.<span class="c-fn">log</span>(<span class="c-var">recovered</span>.state
         <h5>Resources</h5>
         <ul class="footer-links">
           <li><a href="https://github.com/Nauvvi1/ghostpay-recovery" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-          <li><a href="https://explorer.testnet.arc.io/address/0xc0a490b3a7ad86d0a2c25d8d20ee2ca47b34e874" target="_blank" rel="noopener noreferrer">Contract on Arc</a></li>
+          <li><a href="https://explorer.arc.io/address/0xa651aaCB6Bb20263ec5Ac8df243adda01a1CF9e6" target="_blank" rel="noopener noreferrer">Contract on Arc Mainnet</a></li>
           <li><a href="https://docs.arc.io" target="_blank" rel="noopener noreferrer">Arc Docs</a></li>
         </ul>
       </div>
@@ -533,6 +590,7 @@ console.<span class="c-fn">log</span>(<span class="c-var">recovered</span>.state
       <div class="footer-col">
         <h5>Network</h5>
         <ul class="footer-links">
+          <li><a href="https://explorer.arc.io" target="_blank" rel="noopener noreferrer">Arc Mainnet Explorer</a></li>
           <li><a href="https://explorer.testnet.arc.io" target="_blank" rel="noopener noreferrer">Arc Testnet Explorer</a></li>
           <li><a href="https://studio.arc.io" target="_blank" rel="noopener noreferrer">Arc Studio</a></li>
           <li><a href="https://faucet.circle.com" target="_blank" rel="noopener noreferrer">Testnet Faucet</a></li>
@@ -544,8 +602,8 @@ console.<span class="c-fn">log</span>(<span class="c-var">recovered</span>.state
       <p>© 2026 GhostPay · MIT License · Hackathon MVP · Open source prototype</p>
       <p class="footer-disclaimer">
         Not audited. Do not use for significant funds.
-        Arc Mainnet requires independent deployment and review.
-        Testnet only.
+        Mainnet contract deployed for hackathon demo purposes only.
+        Failure Lab operations are simulated and do not involve real USDC.
       </p>
     </div>
   </div>
