@@ -4,15 +4,20 @@
   "version": "1.0.0",
   "description": "Failure-resilient USDC payments on Arc with durable API response recovery",
   "type": "module",
-  "engines": { "node": ">=22.13.0" },
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "scripts": {
     "dev": "node --disable-warning=ExperimentalWarning apps/server/src/server.js",
     "start": "node --disable-warning=ExperimentalWarning apps/server/src/server.js",
-    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.js",
+    "test": "node --disable-warning=ExperimentalWarning --test test/engine.test.js",
+    "test:turso": "node --disable-warning=ExperimentalWarning --test test/turso-repository.test.js",
+    "test:all": "node --disable-warning=ExperimentalWarning --test test/*.test.js",
     "smoke": "node scripts/smoke.js",
-    "check": "node --check apps/server/src/server.js && node --check apps/server/src/repository.js && node --check apps/server/src/app.js && node --check apps/server/src/rpc.js && node --check apps/web/app.js && node --check sdk/ghostpay.js"
+    "check": "node --check apps/server/src/server.js && node --check apps/server/src/repository.js && node --check apps/server/src/app.js && node --check apps/server/src/rpc.js && node --check apps/web/app.js && node --check sdk/ghostpay.js && node --check api/lib/config.js && node --check api/lib/keccak.js && node --check api/lib/rpc.js && node --check api/lib/repository-turso.js && node --check api/lib/handler.js && node --check api/index.js"
   },
   "license": "MIT",
-  "dependencies": {},
-  "devDependencies": {}
+  "dependencies": {
+    "@libsql/client": "^0.18.0"
+  }
 }

@@ -1,0 +1,37 @@
+{
+  "version": 2,
+  "framework": null,
+
+  "outputDirectory": "apps/web",
+
+  "functions": {
+    "api/index.js": {
+      "runtime": "nodejs22.x",
+      "maxDuration": 30
+    }
+  },
+
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/index.js" },
+    { "source": "/lab",        "destination": "/lab.html" },
+    { "source": "/lab/",       "destination": "/lab.html" },
+    { "source": "/sdk/:file*", "destination": "/sdk/:file*" }
+  ],
+
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "x-content-type-options",   "value": "nosniff" },
+        { "key": "x-frame-options",           "value": "SAMEORIGIN" },
+        { "key": "referrer-policy",           "value": "strict-origin-when-cross-origin" }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "cache-control", "value": "no-store" }
+      ]
+    }
+  ]
+}

@@ -68,3 +68,46 @@ Real `GhostPay.pay()` transactions executed and verified on Arc Testnet:
 Confirmed: `paymentCount=1` after both transactions. Merchant balance increased by 100 000 USDC
 units (0.10 USDC) after the first tx and was unchanged after the replay.
 See `docs/TESTNET_PAYMENT_GUIDE.md` for the full step-by-step guide.
+
+## Vercel + Turso architecture (added 2026-10-26)
+
+New files added for zero-VPS Vercel deployment:
+
+| File | Purpose |
+|---|---|
+| `api/index.js` | Vercel Function entry point — handles all `/api/*` routes |
+| `api/lib/handler.js` | Route logic (mirrors `apps/server/src/app.js` but uses async repo) |
+| `api/lib/repository-turso.js` | Async Turso-backed repository (mirrors `apps/server/src/repository.js`) |
+| `api/lib/config.js` | Env var accessors for Vercel (reads at call-time, not module load) |
+| `api/lib/rpc.js` | Copy of `apps/server/src/rpc.js` — Arc eth_call client |
+| `api/lib/keccak.js` | Copy of `apps/server/src/keccak.js` — Keccak-256 impl |
+| `apps/web/sdk/ghostpay.js` | Copy of `sdk/ghostpay.js` served as static file from Vercel output dir |
+| `vercel.json` | Vercel routing: `/api/*` → function, `/lab` → lab.html, static files |
+| `test/turso-repository.test.js` | 14 tests covering async repo, concurrency, rate limiter, all scenarios |
+| `docs/VERCEL_DEPLOYMENT.md` | Full deployment guide |
+
+**Test results:** 14/14 Turso tests pass. 12/12 original engine tests pass.
+
+**No changes to:** `apps/server/`, `apps/web/`, `sdk/`, `contracts/`, `test/engine.test.js`.
+
+### Required Vercel environment variables
+
+| Variable | Required | Value |
+|---|---|---|
+| `TURSO_DATABASE_URL` | Yes | `libsql://…turso.io` |
+| `TURSO_AUTH_TOKEN` | Yes | Turso secret token |
+| `PAYMENT_MODE` | No | `demo` or `arc` |
+| `ARC_CONTRACT_ADDRESS` | Arc only | `0xc0a490b3a7ad86d0a2c25d8d20ee2ca47b34e874` (testnet) |
+| `MERCHANT_ADDRESS` | Arc only | Your wallet address |
+| `ARC_RPC_URL` | No | `https://rpc.testnet.arc.io` (testnet) |
+| `ARC_CHAIN_ID` | No | `5042002` (testnet) |
+| `GHOSTPAY_ALLOWED_ORIGIN` | No | Custom CORS origin for production domain |
+
+### `lost-response` adaptation for Vercel
+
+Vercel Functions cannot destroy the TCP connection (`res.destroy()` is
+unavailable). Instead, the function returns HTTP **499** after committing
+payment + result to Turso. The client SDK treats 499 as a hard connection error
+(same observable effect as a TCP RST). On retry the operation is already
+fulfilled and the original result is returned. The event timeline records
+`FAULT_INJECTED` with an explanatory reason.
