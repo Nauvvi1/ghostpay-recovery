@@ -105,6 +105,7 @@ export async function handleRequest(req, res, repo) {
   if (req.method === 'GET' && path === '/api/config') {
     return json(res, 200, {
       mode, arcReady: mainnetReady, chainId, rpcUrl,
+      chainName:        chainId === 5042 ? 'Arc Mainnet' : 'Arc Testnet',
       contractAddress:  mainnetReady ? contract : null,
       merchantAddress:  mainnetReady ? merchant : null,
       usdcAddress:      USDC_ADDRESS,
@@ -112,7 +113,7 @@ export async function handleRequest(req, res, repo) {
       amountUSDC:       '0.10',
       selectors:        ABI,
       // arc-studio-allow-onchain-literal — public Arc explorer URL in API response, not an RPC call.
-      explorer:         'https://explorer.arc.io',
+      explorer:         chainId === 5042 ? 'https://explorer.arc.io' : 'https://explorer.testnet.arc.io',
       scenarios:        ['normal', 'lost-response', 'crash-after-payment', 'crash-after-job', 'concurrent'],
     });
   }

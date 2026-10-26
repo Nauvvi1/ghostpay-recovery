@@ -68,9 +68,12 @@ export function createApp({repo=openRepository(DB_FILE),rpc=new RpcClient(),mode
     applyCors(req, res);
     if(req.method==='OPTIONS'){res.writeHead(204,{'content-length':'0'});res.end();return;}
     if(req.method==='GET'&&path==='/api/config')return json(res,200,{
-      mode,arcReady:mainnetReady,chainId:CHAIN_ID,rpcUrl:RPC_URL,contractAddress:mainnetReady?contract:null,
+      mode,arcReady:mainnetReady,chainId:CHAIN_ID,rpcUrl:RPC_URL,
+      chainName:CHAIN_ID===5042?'Arc Mainnet':'Arc Testnet',
+      contractAddress:mainnetReady?contract:null,
       merchantAddress:mainnetReady?merchant:null,usdcAddress:USDC_ADDRESS,amountUnits:PRICE_UNITS,amountUSDC:'0.10',selectors:ABI,
-      explorer:'https://explorer.arc.io', scenarios:[...SCENARIOS]
+      explorer:CHAIN_ID===5042?'https://explorer.arc.io':'https://explorer.testnet.arc.io',
+      scenarios:[...SCENARIOS]
     });
     if(req.method==='GET'&&path==='/api/health')return json(res,200,{ok:true,mode});
     if(req.method==='GET'&&path==='/api/stats')return json(res,200,repo.stats());

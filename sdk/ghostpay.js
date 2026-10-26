@@ -50,7 +50,7 @@ export class GhostPayClient {
       catch(error){
         if(error.code===4902 || error?.data?.originalError?.code===4902){
           await this.walletRequest('wallet_addEthereumChain',[{
-            chainId:target,chainName:'Arc Mainnet',rpcUrls:[cfg.rpcUrl],
+            chainId:target,chainName:cfg.chainName||'Arc Mainnet',rpcUrls:[cfg.rpcUrl],
             nativeCurrency:{name:'USDC',symbol:'USDC',decimals:18},blockExplorerUrls:[cfg.explorer]
           }]);
           await this.walletRequest('wallet_switchEthereumChain',[{chainId:target}]);
