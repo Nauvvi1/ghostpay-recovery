@@ -314,7 +314,15 @@ export function openTursoRepository({
             FROM operations`,
       args: [],
     });
-    return rs.rows[0];
+    // libSQL may return column values as BigInt on some driver versions.
+    // Coerce all fields to Number so JSON.stringify never throws.
+    const row = rs.rows[0];
+    return {
+      operations:      Number(row?.operations      ?? 0),
+      totalPayments:   Number(row?.totalPayments   ?? 0),
+      totalExecutions: Number(row?.totalExecutions ?? 0),
+      retries:         Number(row?.retries         ?? 0),
+    };
   }
 
   // ── Rate limiting ─────────────────────────────────────────────────────────

@@ -18,7 +18,7 @@ function receiptFields(data){
 }
 
 export class GhostPayClient {
-  constructor({baseUrl='',fetcher=globalThis.fetch,ethereum=globalThis.ethereum}={}){
+  constructor({baseUrl='',fetcher=globalThis.fetch?.bind(globalThis),ethereum=globalThis.ethereum}={}){
     this.baseUrl=baseUrl;this.fetcher=fetcher;this.ethereum=ethereum;
   }
   async request(method,path,data){
