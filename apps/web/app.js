@@ -24,7 +24,7 @@ function showTab(tab){
   $('demoPanel').hidden=tab!=='demo'; $('arcPanel').hidden=tab!=='arc';
   $('demoTab').classList.toggle('active',tab==='demo');$('arcTab').classList.toggle('active',tab==='arc');
   $('arcMissing').hidden=Boolean(config?.arcReady);$('arcReady').hidden=!config?.arcReady;
-  if(tab==='arc'&&!config?.arcReady)info('Mainnet requires a deployed contract and merchant address. Demo remains available.');
+  if(tab==='arc'&&!config?.arcReady)info('On-chain mode requires PAYMENT_MODE=arc plus ARC_CONTRACT_ADDRESS and MERCHANT_ADDRESS. Arc Testnet contract is deployed; demo mode is always available.');
 }
 function eventStyle(kind){
   if(/FAULT|CRASH/.test(kind))return 'negative';
@@ -47,10 +47,11 @@ function render(op){
   $('kpiJobs').textContent=op.serviceExecutions;
   $('kpiDuplicates').textContent=op.paymentCount>1?op.paymentCount-1:0;
   if(op.result){
-    $('outputBox').innerHTML=`<div class="result-title">✓ PAID RESULT RECOVERED</div>
-    <div class="result-row">Report <strong>${safe(op.result.reportId)}</strong></div>
-    <div class="result-row">Risk score <strong>${safe(op.result.riskScore)} / 100</strong></div>
-    <div class="result-row">Confidence <strong>${safe(Math.round(op.result.confidence*100))}%</strong></div>
+    const modeLabel=op.mode==='arc'?'ON-CHAIN RESULT RECOVERED':'SIMULATED RESULT RECOVERED';
+    $('outputBox').innerHTML=`<div class="result-title">✓ ${modeLabel}</div>
+    <div class="result-row">Report <strong>${safe(op.result.reportId)}</strong>${op.mode==='demo'?' <span class="result-note">(illustrative)</span>':''}</div>
+    <div class="result-row">Risk score <strong>${safe(op.result.riskScore)} / 100</strong>${op.mode==='demo'?' <span class="result-note">(illustrative)</span>':''}</div>
+    <div class="result-row">Confidence <strong>${safe(Math.round(op.result.confidence*100))}%</strong>${op.mode==='demo'?' <span class="result-note">(illustrative)</span>':''}</div>
     <div class="result-row">Status <strong>One service execution · one payment</strong></div>`;
   }else if(hasJob){
     $('outputBox').innerHTML='<span class="output-placeholder">◷ &nbsp; Service output is persisted; response not yet finalized. A retry will recover it.</span>';
@@ -149,7 +150,7 @@ async function boot(){
   $('copyId').addEventListener('click',async()=>{if(!activeOperation)return;try{await navigator.clipboard.writeText(activeOperation.operationId);info('Operation ID copied.','good');}catch{info('Clipboard unavailable; full ID is shown on hover.','error');}});
   try{
     config=await client.getConfig();
-    $('networkName').textContent=config.mode==='arc'?'ARC MAINNET · LIVE':'LOCAL SIMULATION';
+    $('networkName').textContent=config.mode==='arc'?'ARC · LIVE':'DEMO SIMULATION';
     $('serverStatus').textContent='Recovery engine online';
     showTab(config.mode==='arc'?'arc':'demo');
     if(config.mode==='arc'&&!config.arcReady)info('Arc mode selected but contract and merchant have not been configured.','error');

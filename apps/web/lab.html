@@ -25,7 +25,7 @@
       </nav>
       <div class="sidebar-lower">
         <div class="environment-title">NETWORK</div>
-        <div class="network-pill"><span class="online-dot"></span><span id="networkName">LOCAL SIMULATION</span></div>
+        <div class="network-pill"><span class="online-dot"></span><span id="networkName">DEMO SIMULATION</span></div>
         <div class="sidebar-divider"></div>
         <div class="sidebar-note">Payment certainty when networks are anything but certain.</div>
         <div class="tiny-version">GhostPay / v1.0.0 · Hackathon MVP</div>
@@ -45,7 +45,7 @@
             <div class="eyebrow"><span class="eyebrow-line"></span> PAYMENT RECOVERY PROTOCOL <span class="eyebrow-stamp">BUILT FOR ARC</span></div>
             <h1>Payments go through.<br/><span>Responses don't always.</span></h1>
             <p class="hero-subtitle">What happens when the blockchain confirms payment, but your API times out? Break the connection. Retry five times. See why the money moves only once.</p>
-            <div class="hero-meta"><span><b class="meta-circle">✓</b> Idempotent settlement</span><span><b class="meta-circle">✓</b> Durable recovery</span><span><b class="meta-circle">✓</b> Real failure injection</span></div>
+            <div class="hero-meta"><span><b class="meta-circle">✓</b> Idempotent settlement</span><span><b class="meta-circle">✓</b> Durable recovery</span><span><b class="meta-circle">✓</b> Simulated failure injection</span></div>
           </div>
           <div class="hero-decoration" aria-hidden="true"><div class="orb outer"></div><div class="orb inner"></div><span>GHOST<br/>PAY</span></div>
         </section>
@@ -59,15 +59,15 @@
 
         <div class="main-grid">
           <section class="panel control-panel">
-            <div class="panel-head"><div><div class="panel-kicker">01 / INTERACTIVE TEST</div><h2>Failure simulator</h2><p>Inject a failure into an actual local HTTP workflow.</p></div><span class="lab-chip">● LAB</span></div>
+            <div class="panel-head"><div><div class="panel-kicker">01 / INTERACTIVE TEST</div><h2>Failure simulator</h2><p>Inject a simulated failure into the live Vercel backend.</p></div><span class="lab-chip">● LAB</span></div>
             <div class="mode-switch" role="group" aria-label="Payment mode">
-              <button id="demoTab" class="tab active" type="button">◈ &nbsp; Local simulation</button>
-              <button id="arcTab" class="tab" type="button">◎ &nbsp; Arc Mainnet</button>
+              <button id="demoTab" class="tab active" type="button">◈ &nbsp; Demo simulation</button>
+              <button id="arcTab" class="tab" type="button">◎ &nbsp; Arc Testnet / Mainnet</button>
             </div>
             <div id="demoPanel">
               <div class="form-label">INJECT A FAILURE</div>
               <div class="scenario-list" id="scenarioList">
-                <label class="scenario-option selected"><input type="radio" name="scenario" value="lost-response" checked /><span class="scenario-radio"></span><span class="scenario-text"><strong>Lost response</strong><small>Disconnect TCP after a successful payment + result</small></span><span class="scenario-tag red-tag">NETWORK</span></label>
+                <label class="scenario-option selected"><input type="radio" name="scenario" value="lost-response" checked /><span class="scenario-radio"></span><span class="scenario-text"><strong>Lost response</strong><small>HTTP response aborted after payment + result committed durably</small></span><span class="scenario-tag red-tag">NETWORK</span></label>
                 <label class="scenario-option"><input type="radio" name="scenario" value="crash-after-payment" /><span class="scenario-radio"></span><span class="scenario-text"><strong>Crash after payment</strong><small>Paid, but service work hasn't started yet</small></span><span class="scenario-tag">SERVER</span></label>
                 <label class="scenario-option"><input type="radio" name="scenario" value="crash-after-job" /><span class="scenario-radio"></span><span class="scenario-text"><strong>Crash after work</strong><small>Work saved; final HTTP response is missing</small></span><span class="scenario-tag">SERVER</span></label>
                 <label class="scenario-option"><input type="radio" name="scenario" value="concurrent" /><span class="scenario-radio"></span><span class="scenario-text"><strong>Concurrent retries</strong><small>Five simultaneous requests with one operation ID</small></span><span class="scenario-tag">RACE</span></label>
@@ -76,9 +76,9 @@
               <p class="cost-note"><span>ⓘ</span> This mode is simulated. No wallet, token or onchain transfer is used.</p>
             </div>
             <div id="arcPanel" hidden>
-              <div id="arcMissing" class="setup-info" hidden><strong>Mainnet is not configured</strong><p>Deploy <code>GhostPay.sol</code> and set <code>PAYMENT_MODE=arc</code>, <code>ARC_CONTRACT_ADDRESS</code>, and <code>MERCHANT_ADDRESS</code> in your environment.</p></div>
+              <div id="arcMissing" class="setup-info" hidden><strong>On-chain mode not configured</strong><p>GhostPay.sol is deployed on Arc Testnet (<code>0xc0a490b3a7ad86d0a2c25d8d20ee2ca47b34e874</code>) but this Vercel instance is running in demo mode. To enable on-chain payments, set <code>PAYMENT_MODE=arc</code>, <code>ARC_CONTRACT_ADDRESS</code>, and <code>MERCHANT_ADDRESS</code> in your Vercel environment.</p></div>
               <div id="arcReady" hidden>
-                <div class="real-alert"><strong>Real USDC · Arc Mainnet</strong><p>A real 0.10 USDC token payment plus gas fees will be submitted from your wallet. Review transactions before approving.</p></div>
+                <div class="real-alert"><strong>Real USDC · Arc Testnet or Mainnet</strong><p>A real 0.10 USDC token payment will be submitted from your wallet. Arc Mainnet has not been independently deployed or audited — use Arc Testnet for testing. Review all transactions before approving.</p></div>
                 <div class="live-steps"><span>1. Connect wallet</span><span>2. Prepare operation</span><span>3. Pay once</span><span>4. Recover from chain</span></div>
                 <button id="connectWallet" type="button" class="secondary-button">Connect Arc wallet</button>
                 <div class="wallet-line" id="walletLine">No account connected</div>

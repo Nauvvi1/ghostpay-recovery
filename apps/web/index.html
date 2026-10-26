@@ -65,7 +65,7 @@
 
       <p class="hero-subtitle">
         GhostPay ensures that a retried API call is never charged twice and that
-        a previously paid result can be recovered — even after a TCP drop, crash, or timeout.
+        a previously paid result can be recovered — even after a network fault, crash, or timeout.
       </p>
 
       <div class="hero-cta">
@@ -80,7 +80,7 @@
       </div>
 
       <!-- Recovery flow diagram -->
-      <div class="flow-diagram" role="img" aria-label="Payment recovery flow: Request created, USDC approved, payment settled, response delivered or TCP fault, retry recovers result">
+      <div class="flow-diagram" role="img" aria-label="Payment recovery flow: Request created, USDC approved, payment settled, response lost or network fault, retry recovers result">
         <div class="flow-step active">
           <div class="flow-icon" aria-hidden="true">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M16 8V6a4 4 0 00-8 0v2"/></svg>
@@ -107,7 +107,7 @@
           <div class="flow-icon" aria-hidden="true">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </div>
-          <span>TCP<br>dropped</span>
+          <span>Response<br>lost</span>
           <span class="flow-badge fault-badge">Fault</span>
         </div>
         <div class="flow-arrow" aria-hidden="true">→</div>
@@ -240,8 +240,9 @@
         <div class="eyebrow">Interactive demo</div>
         <h2 class="section-title">The Failure Lab</h2>
         <p class="section-desc">
-          Inject real faults into an actual local HTTP workflow.
+          Inject simulated faults into the live Vercel backend.
           Watch the recovery prove that payment count stays at one.
+          Demo mode uses simulated payments — no wallet or token required.
         </p>
       </div>
     </div>
@@ -250,7 +251,7 @@
       <div class="lab-preview-header">
         <div class="lab-preview-title">
           GhostPay Failure Lab
-          <span class="live-badge"><span class="live-dot"></span>Live backend</span>
+          <span class="live-badge"><span class="live-dot"></span>Live Vercel backend · Demo mode</span>
         </div>
         <a class="btn-lab" href="/lab">
           Open interactive lab
@@ -258,22 +259,22 @@
         </a>
       </div>
 
-      <!-- Metric strip -->
+      <!-- Metric strip — illustrative values showing the expected result per scenario run -->
       <div class="lab-preview-body">
         <div class="lab-stat">
           <div class="lab-stat-label">Payment executions</div>
           <div class="lab-stat-value">1</div>
-          <div class="lab-stat-sub">One-time per operation ID</div>
+          <div class="lab-stat-sub">Per operation ID (illustrative)</div>
         </div>
         <div class="lab-stat">
           <div class="lab-stat-label">Retry attempts</div>
           <div class="lab-stat-value">5</div>
-          <div class="lab-stat-sub">Safe replays per scenario</div>
+          <div class="lab-stat-sub">Safe replays per scenario (illustrative)</div>
         </div>
         <div class="lab-stat">
           <div class="lab-stat-label">Service executions</div>
           <div class="lab-stat-value">1</div>
-          <div class="lab-stat-sub">Durable job record</div>
+          <div class="lab-stat-sub">Durable job record (illustrative)</div>
         </div>
         <div class="lab-stat">
           <div class="lab-stat-label">Duplicate debits</div>
@@ -286,7 +287,7 @@
       <div class="lab-scenarios">
         <div class="lab-scenario">
           <div class="scenario-name">Lost response</div>
-          <div class="scenario-desc">TCP socket destroyed after payment + result committed</div>
+          <div class="scenario-desc">HTTP response aborted after payment + result committed durably</div>
           <span class="scenario-tag tag-network">Network</span>
         </div>
         <div class="lab-scenario">
@@ -307,8 +308,8 @@
       </div>
 
       <div class="lab-footer">
-        <p>Local simulation only — no wallet, token or on-chain transfer is used in demo mode.
-           Arc Mainnet mode requires a deployed contract and funded wallet.</p>
+        <p>Demo mode: simulated payments with real Turso persistence — no wallet or token required.
+           Arc Testnet is deployed; Arc Mainnet requires independent deployment and review.</p>
         <a class="btn-lab" href="/lab">
           Run the simulation
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -343,10 +344,10 @@
 <span class="c-keyword">const</span> <span class="c-var">ghostpay</span> = <span class="c-keyword">new</span> <span class="c-type">GhostPayClient</span>();
 <span class="c-keyword">const</span> <span class="c-var">op</span> = <span class="c-keyword">await</span> <span class="c-var">ghostpay</span>.<span class="c-fn">startDemo</span>();
 
-<span class="c-comment">// Inject fault — TCP drop after payment committed</span>
+<span class="c-comment">// Inject fault — HTTP response aborted after payment committed</span>
 <span class="c-keyword">try</span> {
   <span class="c-keyword">await</span> <span class="c-var">ghostpay</span>.<span class="c-fn">attemptDemo</span>(<span class="c-var">op</span>.operationId, <span class="c-string">'lost-response'</span>);
-} <span class="c-keyword">catch</span> { <span class="c-comment">/* TCP response was intentionally lost */</span> }
+} <span class="c-keyword">catch</span> { <span class="c-comment">/* HTTP response aborted to simulate network loss */</span> }
 
 <span class="c-comment">// Retry with the SAME operationId — no second payment</span>
 <span class="c-keyword">const</span> <span class="c-var">recovered</span> = <span class="c-keyword">await</span> <span class="c-var">ghostpay</span>.<span class="c-fn">attemptDemo</span>(
@@ -388,8 +389,8 @@ console.<span class="c-fn">log</span>(<span class="c-var">recovered</span>.state
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
           </div>
           <div class="dev-link-text">
-            <h4>Node.js + SQLite backend</h4>
-            <p>Zero npm dependencies. Built-in Node 22 SQLite API. WAL mode for concurrent retries.</p>
+            <h4>Node.js + Turso backend</h4>
+            <p>Vercel Functions with Turso (libSQL) for durable persistence. Local dev uses built-in Node 22 SQLite.</p>
           </div>
         </div>
 
