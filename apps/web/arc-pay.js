@@ -130,10 +130,20 @@ function persistTxHashes() {
   try { sessionStorage.setItem(STORAGE_KEY_TXS, JSON.stringify(txHashes)); } catch {}
 }
 
-function renderOp(op, source = null) {
+/**
+ * Render the operation inspector panel.
+ *
+ * @param {object} op       — backend operation state object
+ * @param {string|null} source — HTML label for the source badge
+ * @param {object|null} receipt — verified on-chain receipt; when present its
+ *   amount is used for USDC PAID instead of guessing from op fields.
+ *   This ensures the counter is correct after recovery or page reload.
+ */
+function renderOp(op, source = null, receipt = null) {
   activeOp = op;
-  const paid = op.paid || op.paymentCount > 0 || op.status === 'fulfilled';
-  const replayed = op.replayed;
+  const paid = !!(receipt && receipt.amount > 0n) ||
+               op.paid || op.paymentCount > 0 || op.status === 'fulfilled';
+  const replayed = op.replayed || txHashes.some(t => t.type === 'replay');
 
   $('opId').textContent = shortHash(op.operationId);
   $('opId').title = op.operationId;
@@ -152,9 +162,31 @@ function renderOp(op, source = null) {
     chip.className = 'status-chip';
   }
 
-  $('ledgerPaid').textContent = paid ? (op.amountUSDC || '0.10') : '0.00';
-  $('ledgerRetries').textContent = Math.max(0, (op.attempts || 1) - 1);
-  $('ledgerDups').textContent = op.paymentCount > 1 ? op.paymentCount - 1 : 0;
+  // USDC PAID — use on-chain receipt amount when available; never show 0.00 for a
+  // confirmed payment.  Fall back to op fields only when no receipt is present.
+  if (paid) {
+    const amount = receipt && receipt.amount > 0n
+      ? (Number(receipt.amount) / 1e6).toFixed(2)
+      : (op.amountUSDC || '0.10');
+    $('ledgerPaid').textContent = amount;
+  } else {
+    $('ledgerPaid').textContent = '0.00';
+  }
+
+  // RETRIES — count actual retry events from the backend event list, not
+  // op.attempts-1.  op.attempts is incremented by every /api/arc/recover call
+  // including the first (non-retry) invocation, so attempts-1 overstates retries.
+  // We count events of kind RETRY, REPLAY, or PAYMENT_REPLAY_BLOCKED instead.
+  const retryKinds = new Set(['RETRY', 'REPLAY', 'PAYMENT_REPLAY_BLOCKED']);
+  const retryCount = Array.isArray(op.events)
+    ? op.events.filter(e => retryKinds.has(e.kind)).length
+    : Math.max(0, (op.attempts || 1) - 1);  // graceful fallback if events absent
+  $('ledgerRetries').textContent = retryCount;
+
+  // EXTRA DEBITS — based solely on verified transfer data.
+  // paymentCount > 1 would mean the contract failed to prevent a duplicate,
+  // which would be a critical bug.  We show paymentCount-1, floored at 0.
+  $('ledgerDups').textContent = Math.max(0, (op.paymentCount || 0) - 1);
 
   if (source) {
     $('paymentSourceBlock').hidden = false;
@@ -200,18 +232,54 @@ function verifyReceipt(receipt, expected) {
   }
 }
 
-function renderOnchainResult(receipt, isReplay) {
+/**
+ * Render the output box with the verified on-chain receipt and, optionally,
+ * a separately retrieved backend job result.
+ *
+ * @param {object} receipt      — verified on-chain receipt (merchant, amount, blockNumber, requestHash)
+ * @param {boolean} isReplay    — true if a PaymentReplayed event was emitted
+ * @param {object|null} backendState — full backend operation state from /api/arc/recover;
+ *   when present and it contains a persisted result, that result is shown in a
+ *   clearly separated section labelled "Persisted service result".
+ *   When null or the state has no result, only the on-chain receipt is shown.
+ */
+function renderOnchainResult(receipt, isReplay, backendState = null) {
   const label = isReplay ? 'ON-CHAIN REPLAY CONFIRMED' : 'ON-CHAIN PAYMENT CONFIRMED';
   const badge = isReplay
     ? '<span class="replayed-badge">REPLAYED</span>'
     : '<span class="onchain-badge">MAINNET</span>';
-  $('outputBox').innerHTML =
+
+  // On-chain receipt section — always shown, always from verified eth_call data.
+  let html =
     `<div class="result-title">✓ ${safe(label)} ${badge}</div>
     <div class="result-row">Merchant <strong>${safe(shortAddr(receipt.merchant))}</strong></div>
-    <div class="result-row">Amount <strong>${safe(Number(receipt.amount) / 1e6)} USDC</strong></div>
+    <div class="result-row">Amount <strong>${safe((Number(receipt.amount) / 1e6).toFixed(6))} USDC</strong></div>
     <div class="result-row">Block <strong>${safe(receipt.blockNumber.toString())}</strong></div>
     <div class="result-row">Request hash <strong class="small-mono">${safe(shortHash(receipt.requestHash))}</strong></div>
     <div class="result-row">Extra debits <strong class="mint-num">0</strong></div>`;
+
+  // Backend job result section — only shown when a real persisted payload was retrieved.
+  // We do NOT invent or display a fabricated AI result.
+  const jobResult = backendState?.state?.result || backendState?.result;
+  if (jobResult && typeof jobResult === 'object') {
+    html +=
+      `<div class="result-divider"></div>
+      <div class="result-subtitle">Persisted service result <span class="backend-badge">BACKEND</span></div>
+      <div class="result-row result-note">Retrieved from Turso — stored before the fault occurred.</div>`;
+    for (const [k, v] of Object.entries(jobResult)) {
+      html += `<div class="result-row">${safe(k)} <strong>${safe(String(v))}</strong></div>`;
+    }
+  } else if (backendState !== null) {
+    // Backend was reached but returned no job result (e.g. crash-after-payment,
+    // service hasn't run yet, or PAYMENT_MODE=demo arc operation).
+    html +=
+      `<div class="result-divider"></div>
+      <div class="result-row result-note">Backend confirmed on-chain receipt. No persisted service result found.</div>`;
+  }
+  // When backendState is null: backend was not reached or not configured;
+  // we show only the on-chain receipt with no implication about stored results.
+
+  $('outputBox').innerHTML = html;
 }
 
 // ── Low-level helpers ─────────────────────────────────────────────────────
@@ -290,11 +358,15 @@ async function handleConnect() {
         renderOp(op, '<span class="source-mainnet">Arc Mainnet · resumed from session</span>');
         addEvent('SESSION_RESUMED', `op ${shortHash(savedOpId)}`, 'info');
 
-        // Check live on-chain state for this operation
+        // Check live on-chain state for this operation.
+        // Pass the receipt to renderOp so the USDC PAID counter reflects real data.
         const receipt = await readReceipt(wallet, savedOpId);
         if (receipt && receipt.amount > 0n) {
           const isReplay = txHashes.some(t => t.type === 'replay');
-          renderOnchainResult(receipt, isReplay);
+          // Re-render the op panel with the confirmed receipt amount
+          op.paid = true;
+          renderOp(op, '<span class="source-mainnet">Arc Mainnet · resumed from session</span>', receipt);
+          renderOnchainResult(receipt, isReplay, null);
           addEvent('CHAIN_VERIFIED', `block ${receipt.blockNumber}`, 'good');
         }
       } catch {
@@ -433,23 +505,25 @@ async function handlePay() {
       requestHash:  reqHash,
     });
 
-    renderOnchainResult(receipt, false);
     activeOp.paid = true;
-    $('paymentSourceBlock').hidden = false;
-    $('paymentSource').innerHTML = `<span class="source-mainnet">Arc Mainnet · PaymentRecorded · block ${receipt.blockNumber}</span>`;
+    const srcHtml = `<span class="source-mainnet">Arc Mainnet · PaymentRecorded · block ${receipt.blockNumber}</span>`;
     setStep('recover');
     await refreshBalance();
 
     // Trigger backend recovery to link the on-chain receipt to the durable job record.
     // Failure here does NOT invalidate the payment — the on-chain receipt is the source
     // of truth. The backend records the result for future /api/arc/recover calls.
+    let backendState = null;
     try {
       setStatus('Notifying recovery backend…');
       const recovery = await client.recoverArc(activeOp.operationId);
+      backendState = recovery;
       setStatus('Payment confirmed and backend notified.', 'good');
       addEvent('BACKEND_VERIFIED',
         `Durable job record updated · block ${recovery.blockNumber || receipt.blockNumber}`,
         'good');
+      // Update activeOp with the freshest backend state (attempt count, events, result)
+      if (recovery.state) activeOp = { ...activeOp, ...recovery.state };
     } catch (e) {
       // Backend unavailable (e.g. PAYMENT_MODE=demo, no Turso creds, or transient error).
       // The on-chain payment is still confirmed — the backend will sync on next /api/arc/recover call.
@@ -458,6 +532,10 @@ async function handlePay() {
         `Backend did not confirm: ${e.message}. On-chain receipt is the authority.`,
         'info');
     }
+
+    // Render ledger + output box now that we have both receipt and backend state.
+    renderOp(activeOp, srcHtml, receipt);
+    renderOnchainResult(receipt, false, backendState);
 
   } catch (e) {
     setStatus(`Payment interrupted: ${e.message}. Use "Recover from Arc" — do NOT prepare a new operation.`, 'error');
@@ -504,12 +582,13 @@ async function handleReplay() {
     setStatus('Replay confirmed. PaymentReplayed emitted — zero additional USDC transferred. Gas fee applies.', 'good');
     addEvent('PAYMENT_REPLAYED', `tx ${shortHash(replayTx)} · no USDC transferred · gas fee paid`, 'good');
 
-    // The receipt should still show the original payment amount
+    // The receipt should still show the original payment amount.
+    // Call renderOp to update the USDC PAID ledger with the confirmed receipt amount.
     const receipt = await readReceipt(wallet, activeOp.operationId);
     if (receipt && receipt.amount > 0n) {
-      renderOnchainResult(receipt, true);
-      $('paymentSource').innerHTML = `<span class="source-replay">Arc Mainnet · PaymentReplayed · no additional debit</span>`;
-      $('ledgerDups').textContent = '0';  // still 0 extra debits — contract protected it
+      const replaySrc = '<span class="source-replay">Arc Mainnet · PaymentReplayed · no additional debit</span>';
+      renderOp(activeOp, replaySrc, receipt);
+      renderOnchainResult(receipt, true, null);
     }
 
     await refreshBalance();
@@ -545,21 +624,32 @@ async function handleRecover() {
     });
 
     const isReplay = txHashes.some(t => t.type === 'replay');
-    renderOnchainResult(receipt, isReplay);
     setStatus('On-chain receipt verified. Original result recovered.', 'good');
     addEvent('CHAIN_VERIFIED', `block ${receipt.blockNumber} · amount ${Number(receipt.amount)/1e6} USDC`, 'good');
 
     // Attempt backend sync — this writes the on-chain result into the durable job store
     // so subsequent /api/operations/:id calls reflect the settled state.
     // If the backend is unavailable the on-chain receipt is still authoritative.
+    let backendState = null;
     try {
-      await client.recoverArc(activeOp.operationId);
+      const recovery = await client.recoverArc(activeOp.operationId);
+      backendState = recovery;
+      // Update activeOp with the freshest backend state so the ledger is accurate.
+      if (recovery.state) activeOp = { ...activeOp, ...recovery.state, paid: true };
       addEvent('BACKEND_VERIFIED', 'Durable job record synced with on-chain receipt', 'good');
     } catch (e) {
       addEvent('BACKEND_UNAVAILABLE',
         `Backend sync failed: ${e.message}. On-chain receipt is the authority — payment is confirmed.`,
         'info');
     }
+
+    // Render ledger counters with the verified receipt (ensures USDC PAID = 0.10)
+    const recoverSrc = isReplay
+      ? '<span class="source-replay">Arc Mainnet · PaymentReplayed · recovered</span>'
+      : '<span class="source-mainnet">Arc Mainnet · on-chain receipt · recovered</span>';
+    activeOp.paid = true;
+    renderOp(activeOp, recoverSrc, receipt);
+    renderOnchainResult(receipt, isReplay, backendState);
   } catch (e) {
     setStatus(`Recovery error: ${e.message}`, 'error');
     addEvent('RECOVER_ERROR', e.message, 'bad');

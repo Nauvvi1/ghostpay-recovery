@@ -324,6 +324,9 @@
 .result-title { font-weight: 600; color: #65F0C7; margin-bottom: 10px; }
 .result-row { color: #8aacbc; margin-top: 4px; }
 .result-row strong { color: #c8dde8; }
+.result-divider { border: none; border-top: 1px solid rgba(101,240,199,.12); margin: 14px 0 10px; }
+.result-subtitle { font-size: 0.78rem; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: #7a9aaa; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.backend-badge { font-size: 0.65rem; background: rgba(101,240,199,.1); color: #65F0C7; border: 1px solid rgba(101,240,199,.25); border-radius: 3px; padding: 1px 5px; letter-spacing: .06em; }
 .onchain-badge {
   display: inline-block;
   background: rgba(101, 240, 199, 0.1);
