@@ -19,5 +19,8 @@
   "license": "MIT",
   "dependencies": {
     "@libsql/client": "^0.18.0"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.5"
   }
 }
