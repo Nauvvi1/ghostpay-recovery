@@ -88,7 +88,13 @@ export async function handleRequest(req, res, repo) {
   const merchant   = getMerchantAddress();
   const chainId    = getChainId();
   const rpcUrl     = getRpcUrl();
+  // mainnetReady: returned in /api/config to indicate full Arc mode to the client.
   const mainnetReady = mode === 'arc' && isAddress(contract) && isAddress(merchant) && contract.toLowerCase() !== USDC_ADDRESS;
+  // arcConfigured: contract + merchant env vars are present, regardless of PAYMENT_MODE.
+  // Used by /api/arc/prepare and /api/arc/recover so they work when PAYMENT_MODE=demo
+  // but ARC_CONTRACT_ADDRESS + MERCHANT_ADDRESS are set (e.g. the arc-pay.html frontend
+  // calls these routes directly while the Failure Lab stays in demo mode).
+  const arcConfigured = isAddress(contract) && isAddress(merchant) && contract.toLowerCase() !== USDC_ADDRESS;
 
   const path = req.url ? new URL(req.url, 'http://localhost').pathname : '/';
 
@@ -188,7 +194,9 @@ export async function handleRequest(req, res, repo) {
   }
 
   if (req.method === 'POST' && path === '/api/arc/prepare') {
-    if (!mainnetReady) return err(res, 503, 'Arc mode not configured. Set PAYMENT_MODE=arc, ARC_CONTRACT_ADDRESS and MERCHANT_ADDRESS');
+    // Requires contract + merchant configured; PAYMENT_MODE does not need to be 'arc'.
+    // The Failure Lab can stay in demo mode while the arc-pay frontend uses these routes.
+    if (!arcConfigured) return err(res, 503, 'Arc endpoints not configured. Set ARC_CONTRACT_ADDRESS and MERCHANT_ADDRESS environment variables.');
     const body = await bodyJson(req);
     if (!isAddress(body.payer)) return err(res, 400, 'Invalid payer address');
     const row = await repo.create({ mode: 'arc', payer: body.payer, merchant, amount: PRICE_UNITS });
@@ -196,7 +204,7 @@ export async function handleRequest(req, res, repo) {
   }
 
   if (req.method === 'POST' && path === '/api/arc/recover') {
-    if (!mainnetReady) return err(res, 503, 'Arc mode not configured');
+    if (!arcConfigured) return err(res, 503, 'Arc endpoints not configured. Set ARC_CONTRACT_ADDRESS and MERCHANT_ADDRESS.');
     const body = await bodyJson(req);
     if (!isBytes32(body.operationId)) return err(res, 400, 'Invalid operation ID');
     const id = body.operationId.toLowerCase();

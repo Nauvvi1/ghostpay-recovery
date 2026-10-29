@@ -165,6 +165,41 @@ function renderOp(op, source = null) {
   setBusy(busy);
 }
 
+/**
+ * Verify an on-chain receipt against the expected operation parameters before
+ * treating the payment as confirmed. Throws a descriptive error if any field
+ * does not match so the caller can surface it to the user rather than silently
+ * accepting a receipt for a different payment.
+ *
+ * @param {object} receipt  — from readReceipt() {merchant, amount, requestHash, blockNumber}
+ * @param {object} expected — {merchant: string, amountUnits: bigint, requestHash: string}
+ */
+function verifyReceipt(receipt, expected) {
+  if (!receipt || receipt.amount === 0n) {
+    throw new Error('Receipt has zero amount — operation has not been settled on-chain.');
+  }
+  if (expected.merchant &&
+      receipt.merchant.toLowerCase() !== expected.merchant.toLowerCase()) {
+    throw new Error(
+      `Receipt merchant ${receipt.merchant} does not match expected ${expected.merchant}. ` +
+      'Do not treat this as a valid payment for this operation.'
+    );
+  }
+  if (expected.amountUnits !== undefined &&
+      receipt.amount !== BigInt(expected.amountUnits)) {
+    throw new Error(
+      `Receipt amount ${receipt.amount} units does not match expected ${expected.amountUnits} units.`
+    );
+  }
+  if (expected.requestHash &&
+      receipt.requestHash.toLowerCase() !== expected.requestHash.toLowerCase()) {
+    throw new Error(
+      `Receipt requestHash does not match operation requestHash — ` +
+      'this on-chain payment was for different request parameters.'
+    );
+  }
+}
+
 function renderOnchainResult(receipt, isReplay) {
   const label = isReplay ? 'ON-CHAIN REPLAY CONFIRMED' : 'ON-CHAIN PAYMENT CONFIRMED';
   const badge = isReplay
@@ -308,6 +343,17 @@ async function handlePay() {
     // This prevents double payment if a previous tx was lost but confirmed.
     const existing = await readReceipt(wallet, activeOp.operationId);
     if (existing && existing.amount > 0n) {
+      // Verify fields before accepting the existing receipt
+      const reqHashEarly = activeOp.requestHash || activeOp.request_hash;
+      try {
+        verifyReceipt(existing, {
+          merchant:    activeOp.merchant || MAINNET_CONFIG.merchantAddress,
+          amountUnits: 100_000n,
+          ...(reqHashEarly ? { requestHash: reqHashEarly } : {}),
+        });
+      } catch (verifyErr) {
+        throw new Error(`Existing on-chain receipt failed verification: ${verifyErr.message}`);
+      }
       setStatus('Payment already recorded on-chain. Using existing receipt.', 'good');
       addEvent('ALREADY_PAID', `block ${existing.blockNumber}`, 'good');
       renderOnchainResult(existing, false);
@@ -377,9 +423,15 @@ async function handlePay() {
     setStatus('Payment confirmed on Arc Mainnet!', 'good');
     addEvent('PAYMENT_RECORDED', `tx ${shortHash(payTx)} · block confirmed`, 'good');
 
-    // Step 4: read the on-chain receipt
+    // Step 4: read and VERIFY the on-chain receipt before rendering.
+    // This catches the (very rare) case where the RPC returns stale data or
+    // the contract address was misconfigured.
     const receipt = await readReceipt(wallet, activeOp.operationId);
-    if (!receipt || receipt.amount === 0n) throw new Error('Payment confirmed but receipt not found — retry recovery');
+    verifyReceipt(receipt, {
+      merchant:     activeOp.merchant || MAINNET_CONFIG.merchantAddress,
+      amountUnits:  100_000n,
+      requestHash:  reqHash,
+    });
 
     renderOnchainResult(receipt, false);
     activeOp.paid = true;
@@ -388,13 +440,23 @@ async function handlePay() {
     setStep('recover');
     await refreshBalance();
 
-    // Trigger backend recovery to link the on-chain receipt to the durable job
+    // Trigger backend recovery to link the on-chain receipt to the durable job record.
+    // Failure here does NOT invalidate the payment — the on-chain receipt is the source
+    // of truth. The backend records the result for future /api/arc/recover calls.
     try {
-      setStatus('Notifying recovery backend…', 'good');
+      setStatus('Notifying recovery backend…');
       const recovery = await client.recoverArc(activeOp.operationId);
-      addEvent('BACKEND_VERIFIED', `block ${recovery.blockNumber || receipt.blockNumber}`, 'good');
+      setStatus('Payment confirmed and backend notified.', 'good');
+      addEvent('BACKEND_VERIFIED',
+        `Durable job record updated · block ${recovery.blockNumber || receipt.blockNumber}`,
+        'good');
     } catch (e) {
-      addEvent('BACKEND_NOTE', `Recovery backend: ${e.message}`, 'info');
+      // Backend unavailable (e.g. PAYMENT_MODE=demo, no Turso creds, or transient error).
+      // The on-chain payment is still confirmed — the backend will sync on next /api/arc/recover call.
+      setStatus('Payment confirmed on-chain. Backend sync pending — use "Recover from Arc" to sync.', 'good');
+      addEvent('BACKEND_UNAVAILABLE',
+        `Backend did not confirm: ${e.message}. On-chain receipt is the authority.`,
+        'info');
     }
 
   } catch (e) {
@@ -439,8 +501,8 @@ async function handleReplay() {
     addEvent('REPLAY_TX_SENT', shortHash(replayTx));
     await client.waitReceipt(replayTx);
     addTxLink('replay', replayTx);
-    setStatus('Replay confirmed. PaymentReplayed emitted — zero additional USDC transferred.', 'good');
-    addEvent('PAYMENT_REPLAYED', `tx ${shortHash(replayTx)} · no USDC transferred`, 'good');
+    setStatus('Replay confirmed. PaymentReplayed emitted — zero additional USDC transferred. Gas fee applies.', 'good');
+    addEvent('PAYMENT_REPLAYED', `tx ${shortHash(replayTx)} · no USDC transferred · gas fee paid`, 'good');
 
     // The receipt should still show the original payment amount
     const receipt = await readReceipt(wallet, activeOp.operationId);
@@ -474,17 +536,29 @@ async function handleRecover() {
       return;
     }
 
+    // Verify receipt fields match the active operation before rendering.
+    const reqHash = activeOp?.requestHash || activeOp?.request_hash;
+    verifyReceipt(receipt, {
+      merchant:    activeOp?.merchant || MAINNET_CONFIG.merchantAddress,
+      amountUnits: 100_000n,
+      ...(reqHash ? { requestHash: reqHash } : {}),
+    });
+
     const isReplay = txHashes.some(t => t.type === 'replay');
     renderOnchainResult(receipt, isReplay);
     setStatus('On-chain receipt verified. Original result recovered.', 'good');
     addEvent('CHAIN_VERIFIED', `block ${receipt.blockNumber} · amount ${Number(receipt.amount)/1e6} USDC`, 'good');
 
-    // Call backend recovery too
+    // Attempt backend sync — this writes the on-chain result into the durable job store
+    // so subsequent /api/operations/:id calls reflect the settled state.
+    // If the backend is unavailable the on-chain receipt is still authoritative.
     try {
       await client.recoverArc(activeOp.operationId);
-      addEvent('BACKEND_VERIFIED', 'Durable backend state updated', 'good');
+      addEvent('BACKEND_VERIFIED', 'Durable job record synced with on-chain receipt', 'good');
     } catch (e) {
-      addEvent('BACKEND_NOTE', e.message, 'info');
+      addEvent('BACKEND_UNAVAILABLE',
+        `Backend sync failed: ${e.message}. On-chain receipt is the authority — payment is confirmed.`,
+        'info');
     }
   } catch (e) {
     setStatus(`Recovery error: ${e.message}`, 'error');
