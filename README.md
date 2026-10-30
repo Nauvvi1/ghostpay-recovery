@@ -6,13 +6,13 @@ Sometimes a payment succeeds, but the API response gets lost. The client retries
 
 GhostPay solves this by linking each payment to a unique operation ID. Repeating the same operation doesn't transfer USDC again, and the original result can be recovered.
 
-![GhostPay dashboard](docs/dashboard-preview.png)
-
 ## Links
 
 - **Live app:** https://arc-studio-cfe64d9dabbe491f8a5b1e9a.vercel.app/
 - **Arc Mainnet:** https://arc-studio-cfe64d9dabbe491f8a5b1e9a.vercel.app/arc-pay
 - **Demo video:** https://youtu.be/eXDUhj5iWEM
+
+![GhostPay dashboard](docs/dashboard-preview.png)
 
 ## How it works
 
